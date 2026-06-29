@@ -2,156 +2,201 @@ class CompoundRiskEngine:
 
     def evaluate(self, sensor_data, scenario):
 
-        risk_score = 0
+        self.sensor = sensor_data
+        self.scenario = scenario
 
-        reasons = []
+        self.score = 0
+        self.reasons = []
+        self.recommendations = []
 
-        recommendations = []
+        # -----------------------
+        # Base Sensor Scoring
+        # -----------------------
 
-        # -------------------------------
-        # Gas
-        # -------------------------------
+        self._base_sensor_score()
 
-        gas = sensor_data["gas_ppm"]
+        # -----------------------
+        # Compound Rules
+        # -----------------------
 
-        if gas > 60:
-            risk_score += 35
-            reasons.append("Hazardous gas concentration")
+        self._check_explosion()
 
-        elif gas > 35:
-            risk_score += 20
-            reasons.append("Gas concentration rising")
+        self._check_fire()
 
-        # -------------------------------
-        # Temperature
-        # -------------------------------
+        self._check_boiler_failure()
 
-        temp = sensor_data["temperature_c"]
+        self._check_process_instability()
 
-        if temp > 480:
-            risk_score += 20
-            reasons.append("Critical temperature")
+        self._check_permit_conflict()
 
-        elif temp > 450:
-            risk_score += 10
-            reasons.append("High temperature")
+        self._check_emergency_shutdown()
 
-        # -------------------------------
-        # Pressure
-        # -------------------------------
+        # -----------------------
 
-        pressure = sensor_data["pressure_bar"]
+        self.score = min(self.score, 100)
 
-        if pressure > 8:
-
-            risk_score += 20
-
-            reasons.append("Pressure above safe limit")
-
-        elif pressure > 6:
-
-            risk_score += 10
-
-            reasons.append("Pressure increasing")
-
-        # -------------------------------
-        # Maintenance
-        # -------------------------------
-
-        if scenario["maintenance"]:
-
-            risk_score += 10
-
-            reasons.append("Maintenance activity")
-
-        # -------------------------------
-        # Permit
-        # -------------------------------
-
-        if scenario["permit"] == "Hot Work":
-
-            risk_score += 15
-
-            reasons.append("Hot Work Permit Active")
-
-        elif scenario["permit"] != "None":
-
-            risk_score += 5
-
-            reasons.append("Permit Active")
-
-        # -------------------------------
-        # Incident
-        # -------------------------------
-
-        incident = scenario["incident"]
-
-        if incident != "Normal Operation":
-
-            risk_score += 15
-
-            reasons.append(incident)
-
-        # -------------------------------
-        # Clamp score
-        # -------------------------------
-
-        risk_score = min(risk_score, 100)
-
-        # -------------------------------
-        # Overall Level
-        # -------------------------------
-
-        if risk_score >= 80:
-
+        if self.score >= 80:
             level = "CRITICAL"
 
-        elif risk_score >= 60:
-
+        elif self.score >= 60:
             level = "HIGH"
 
-        elif risk_score >= 30:
-
+        elif self.score >= 30:
             level = "MEDIUM"
 
         else:
-
             level = "LOW"
-
-        # -------------------------------
-        # Recommendations
-        # -------------------------------
-
-        if level == "LOW":
-
-            recommendations.append("Continue normal monitoring.")
-
-        if level == "MEDIUM":
-
-            recommendations.append("Increase inspection frequency.")
-
-        if level == "HIGH":
-
-            recommendations.append("Notify safety supervisor.")
-
-            recommendations.append("Reduce operational load.")
-
-        if level == "CRITICAL":
-
-            recommendations.append("Immediate evacuation.")
-
-            recommendations.append("Stop plant operation.")
-
-            recommendations.append("Activate emergency response.")
 
         return {
 
-            "risk_score": risk_score,
+            "risk_score": self.score,
 
             "risk_level": level,
 
-            "reasons": reasons,
+            "reasons": self.reasons,
 
-            "recommendations": recommendations
+            "recommendations": self.recommendations
 
         }
+
+    def _check_explosion(self):
+
+        gas = self.sensor["gas_ppm"]
+
+        permit = self.scenario["permit"]
+
+        if gas > 45 and permit == "Hot Work":
+
+            self.score += 30
+
+            self.reasons.append(
+                "Explosion risk: hazardous gas with active hot work."
+            )
+
+            self.recommendations.append(
+                "Cancel Hot Work Permit immediately."
+            )
+
+    def _check_fire(self):
+
+        gas = self.sensor["gas_ppm"]
+
+        temp = self.sensor["temperature_c"]
+
+        if gas > 35 and temp > 450:
+
+            self.score += 20
+
+            self.reasons.append(
+                "Fire hazard due to high gas and temperature."
+            )
+
+            self.recommendations.append(
+                "Inspect ignition sources immediately."
+            )
+
+    def _check_boiler_failure(self):
+
+        pressure = self.sensor["pressure_bar"]
+
+        temp = self.sensor["temperature_c"]
+
+        if pressure > 8 and temp > 470:
+
+            self.score += 20
+
+            self.reasons.append(
+                "Possible boiler failure."
+            )
+
+            self.recommendations.append(
+                "Reduce boiler load immediately."
+            )
+
+    def _check_process_instability(self):
+
+        pressure = self.sensor["pressure_bar"]
+
+        gas = self.sensor["gas_ppm"]
+
+        if pressure > 7 and gas > 40:
+
+            self.score += 15
+
+            self.reasons.append(
+                "Process becoming unstable."
+            )
+
+            self.recommendations.append(
+                "Increase monitoring frequency."
+            )
+
+    def _check_permit_conflict(self):
+
+        incident = self.scenario["incident"]
+
+        permit = self.scenario["permit"]
+
+        if incident == "Gas Leak" and permit == "Hot Work":
+
+            self.score += 25
+
+            self.reasons.append(
+                "Unsafe permit issued during gas leak."
+            )
+
+            self.recommendations.append(
+                "Suspend work permit immediately."
+            )
+
+    def _check_emergency_shutdown(self):
+
+        gas = self.sensor["gas_ppm"]
+
+        temp = self.sensor["temperature_c"]
+
+        pressure = self.sensor["pressure_bar"]
+
+        if gas > 60 and temp > 480 and pressure > 8:
+
+            self.score += 35
+
+            self.reasons.append(
+                "Multiple critical process parameters exceeded."
+            )
+
+            self.recommendations.append(
+                "Initiate emergency shutdown."
+            )
+
+    def _base_sensor_score(self):
+
+        gas = self.sensor["gas_ppm"]
+        temp = self.sensor["temperature_c"]
+        pressure = self.sensor["pressure_bar"]
+
+        if gas > 60:
+            self.score += 20
+
+        elif gas > 35:
+            self.score += 10
+
+        if temp > 480:
+            self.score += 15
+
+        elif temp > 450:
+            self.score += 8
+
+        if pressure > 8:
+            self.score += 15
+
+        elif pressure > 6:
+            self.score += 8
+
+        if self.scenario["maintenance"]:
+            self.score += 5
+
+        if self.scenario["permit"] == "Hot Work":
+            self.score += 8
+            
+

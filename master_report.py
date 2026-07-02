@@ -6,10 +6,11 @@ class MasterReport:
         sensor_data,
         ai_result,
         risk_map,
+        geo_map,
         workers
     ):
 
-        report = {
+        return {
 
             "timestamp": sensor_data["timestamp"],
 
@@ -33,8 +34,8 @@ class MasterReport:
 
             "risk_map": risk_map,
 
+            "geo_map": geo_map,
+
             "workers": workers
 
         }
-
-        return report

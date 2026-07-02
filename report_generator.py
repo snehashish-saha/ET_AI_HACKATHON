@@ -1,3 +1,4 @@
+import time
 from simulator.sensor_simulator import SensorSimulator
 from simulator.plant_simulator import PlantSimulator
 from simulator.worker_simulator import WorkerSimulator
@@ -23,7 +24,7 @@ class ReportGenerator:
     - Gemini
     """
 
-    def __init__(self):
+    def __init__(self): 
 
         self.sensor = SensorSimulator()
 
@@ -42,6 +43,8 @@ class ReportGenerator:
         self.predictor = PredictionEngine()
 
         self.executive = ExecutiveAI()
+        self.last_summary = ""
+        self.last_summary_time = 0
 
     def generate_report(self):
 
@@ -88,21 +91,23 @@ class ReportGenerator:
             sensor_data
         )
 
-        summary = self.executive.generate(
+        current_time = time.time()
 
-            incident=scenario["incident"],
+        if current_time - self.last_summary_time >= 20:
+            print("\n🤖 Gemini Summary Refreshed\n")
 
-            zone=scenario["zone"],
+            self.last_summary = self.executive.generate(
+                incident=scenario["incident"],
+                zone=scenario["zone"],
+                risk_level=ai_result["risk_level"],
+                reasons=ai_result["reasons"],
+                recommendations=ai_result["recommendations"],
+                predictions=predictions
+            )
 
-            risk_level=ai_result["risk_level"],
+            self.last_summary_time = current_time
 
-            reasons=ai_result["reasons"],
-
-            recommendations=ai_result["recommendations"],
-
-            predictions=predictions
-        )
-
+        summary = self.last_summary
         # ---------------------------------------
         # Geospatial AI
         # ---------------------------------------

@@ -14,7 +14,7 @@ class ExecutiveAI:
             api_key=os.getenv("GEMINI_API_KEY")
         )
 
-        self.model = "gemini-3.5-flash"
+        self.model = "gemini-3.1-flash-lite"
 
     def generate(
         self,

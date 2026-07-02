@@ -8,7 +8,8 @@ class MasterReport:
         risk_map,
         geo_map,
         workers,
-        prediction
+        prediction,
+        executive_summary
     ):
 
         return {
@@ -39,6 +40,9 @@ class MasterReport:
 
             "prediction": prediction,
 
+            "executive_summary": executive_summary,
+
             "workers": workers
+            
 
         }

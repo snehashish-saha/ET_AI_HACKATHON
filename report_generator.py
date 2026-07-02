@@ -8,6 +8,7 @@ from AI.geospatial_engine import GeospatialEngine
 
 from master_report import MasterReport
 from AI.prediction_engine import PredictionEngine
+from AI.executive_ai import ExecutiveAI
 
 class ReportGenerator:
     """
@@ -39,6 +40,8 @@ class ReportGenerator:
         self.master = MasterReport()
 
         self.predictor = PredictionEngine()
+
+        self.executive = ExecutiveAI()
 
     def generate_report(self):
 
@@ -85,6 +88,21 @@ class ReportGenerator:
             sensor_data
         )
 
+        summary = self.executive.generate(
+
+            incident=scenario["incident"],
+
+            zone=scenario["zone"],
+
+            risk_level=ai_result["risk_level"],
+
+            reasons=ai_result["reasons"],
+
+            recommendations=ai_result["recommendations"],
+
+            predictions=predictions
+        )
+
         # ---------------------------------------
         # Geospatial AI
         # ---------------------------------------
@@ -104,7 +122,8 @@ class ReportGenerator:
             risk_map=risk_map,
             geo_map=geo_map,
             workers=workers,
-            prediction=predictions
+            prediction=predictions,
+            executive_summary=summary
         )
 
         return report

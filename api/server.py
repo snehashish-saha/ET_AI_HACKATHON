@@ -18,6 +18,7 @@ app = FastAPI(
 
 generator = ReportGenerator()
 
+#Message 
 
 @app.get("/")
 def home():
@@ -31,3 +32,4 @@ def home():
 def report():
 
     return generator.generate_report()
+

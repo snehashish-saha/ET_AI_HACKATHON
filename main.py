@@ -67,6 +67,12 @@ while True:
 
     print("🧠 MASTER AI\n")
 
+    print("\n" + "-" * 100)
+
+    print("📋 EXECUTIVE AI SUMMARY\n")
+
+    print(report["executive_summary"])
+
     print(f"Overall Risk Score : {report['master_ai']['risk_score']}%")
     print(
         f"Overall Risk Level : "

@@ -8,6 +8,8 @@ from simulator.worker_simulator import WorkerSimulator
 from AI.risk_zone_engine import RiskZoneEngine
 from AI.compound_risk_engine import CompoundRiskEngine
 
+from master_report import MasterReport
+
 
 # --------------------------------------------------
 # Initialize Modules
@@ -20,8 +22,13 @@ worker_sim = WorkerSimulator()
 risk_engine = RiskZoneEngine()
 compound_ai = CompoundRiskEngine()
 
+master = MasterReport()
 
+
+# --------------------------------------------------
 # Risk Icons
+# --------------------------------------------------
+
 ICON = {
     "LOW": "🟢",
     "MEDIUM": "🟡",
@@ -36,64 +43,84 @@ ICON = {
 
 while True:
 
-    scenario = plant.get_current_scenario()
+    # -------------------------------
+    # Generate Simulation Data
+    # -------------------------------
 
-    zone_info = PLANT_LAYOUT[scenario["zone"]]
+    scenario = plant.get_current_scenario()
 
     sensor.update(scenario)
 
-    data = sensor.get_data()
+    sensor_data = sensor.get_data()
 
     workers = worker_sim.generate_workers(scenario)
 
     risk_map = risk_engine.generate_risk_map(scenario)
 
-    ai_result = compound_ai.evaluate(data, scenario)
+    ai_result = compound_ai.evaluate(sensor_data, scenario)
 
-    print("\n" + "=" * 90)
+    report = master.generate(
+        scenario,
+        sensor_data,
+        ai_result,
+        risk_map,
+        workers
+    )
 
-    print(f"🕒 Timestamp     : {data['timestamp']}")
-    print(f"🚨 Incident      : {scenario['incident']}")
-    print(f"⚠ Risk Level     : {scenario['risk_level']}")
-    print(f"🏭 Plant State   : {scenario['state']}")
-    print(f"📍 Zone          : {scenario['zone']}")
-    print(f"👷 Workers       : {scenario['workers']}")
-    print(f"📄 Permit        : {scenario['permit']}")
-    print(f"🔧 Maintenance   : {scenario['maintenance']}")
+    zone_info = PLANT_LAYOUT[report["plant"]["zone"]]
+
+    # -------------------------------
+    # Console Output
+    # -------------------------------
+
+    print("\n" + "=" * 95)
+
+    print(f"🕒 Timestamp     : {report['timestamp']}")
+    print(f"🚨 Incident      : {report['plant']['incident']}")
+    print(f"⚠ Risk Level     : {report['master_ai']['risk_level']}")
+    print(f"🏭 Plant State   : {report['plant']['state']}")
+    print(f"📍 Zone          : {report['plant']['zone']}")
+    print(f"👷 Workers       : {len(report['workers'])}")
+    print(f"📄 Permit        : {report['plant']['permit']}")
+    print(f"🔧 Maintenance   : {report['plant']['maintenance']}")
     print(f"📷 Camera        : {zone_info['camera']}")
     print(f"☣ Hazard        : {zone_info['hazard']}")
 
-    print("\n" + "-" * 90)
+    print("\n" + "-" * 95)
 
     print("📈 LIVE SENSOR DATA\n")
 
-    print(f"⛽ Gas          : {data['gas_ppm']} ppm")
-    print(f"🌡 Temperature  : {data['temperature_c']} °C")
-    print(f"⚙ Pressure     : {data['pressure_bar']} bar")
-    print(f"💧 Humidity     : {data['humidity_percent']} %")
+    print(f"⛽ Gas          : {report['sensor']['gas_ppm']} ppm")
+    print(f"🌡 Temperature  : {report['sensor']['temperature_c']} °C")
+    print(f"⚙ Pressure     : {report['sensor']['pressure_bar']} bar")
+    print(f"💧 Humidity     : {report['sensor']['humidity_percent']} %")
 
-    print("\n" + "-" * 90)
+    print("\n" + "-" * 95)
 
     print("🧠 MASTER AI\n")
 
-    print(f"Overall Risk Score : {ai_result['risk_score']}%")
-    print(f"Overall Risk Level : {ICON[ai_result['risk_level']]} {ai_result['risk_level']}")
+    print(f"Overall Risk Score : {report['master_ai']['risk_score']}%")
+    print(
+        f"Overall Risk Level : "
+        f"{ICON[report['master_ai']['risk_level']]} "
+        f"{report['master_ai']['risk_level']}"
+    )
 
-    print("\nReasons")
+    print("\nRoot Cause Analysis")
 
-    for reason in ai_result["reasons"]:
+    for reason in report["master_ai"]["reasons"]:
         print(f"   • {reason}")
 
-    print("\nRecommendations")
+    print("\nRecommended Actions")
 
-    for recommendation in ai_result["recommendations"]:
+    for recommendation in report["master_ai"]["recommendations"]:
         print(f"   ✔ {recommendation}")
 
-    print("\n" + "-" * 90)
+    print("\n" + "-" * 95)
 
     print("👷 WORKERS\n")
 
-    for worker in workers:
+    for worker in report["workers"]:
 
         print(
             f"{worker['id']} | "
@@ -104,14 +131,14 @@ while True:
             f"{worker['status']}"
         )
 
-    print("\n" + "-" * 90)
+    print("\n" + "-" * 95)
 
     print("🗺 RISK ZONES\n")
 
-    for zone, info in risk_map.items():
+    for zone, info in report["risk_map"].items():
 
         print(f"{ICON[info['risk']]} {zone:<22} : {info['risk']}")
 
-    print("=" * 90)
+    print("=" * 95)
 
     time.sleep(1)

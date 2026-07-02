@@ -7,7 +7,7 @@ from AI.compound_risk_engine import CompoundRiskEngine
 from AI.geospatial_engine import GeospatialEngine
 
 from master_report import MasterReport
-
+from AI.prediction_engine import PredictionEngine
 
 class ReportGenerator:
     """
@@ -37,6 +37,8 @@ class ReportGenerator:
         self.geo_engine = GeospatialEngine()
 
         self.master = MasterReport()
+
+        self.predictor = PredictionEngine()
 
     def generate_report(self):
 
@@ -79,6 +81,10 @@ class ReportGenerator:
             scenario
         )
 
+        predictions = self.predictor.predict(
+            sensor_data
+        )
+
         # ---------------------------------------
         # Geospatial AI
         # ---------------------------------------
@@ -97,7 +103,8 @@ class ReportGenerator:
             ai_result=ai_result,
             risk_map=risk_map,
             geo_map=geo_map,
-            workers=workers
+            workers=workers,
+            prediction=predictions
         )
 
         return report

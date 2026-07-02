@@ -7,7 +7,8 @@ class MasterReport:
         ai_result,
         risk_map,
         geo_map,
-        workers
+        workers,
+        prediction
     ):
 
         return {
@@ -35,6 +36,8 @@ class MasterReport:
             "risk_map": risk_map,
 
             "geo_map": geo_map,
+
+            "prediction": prediction,
 
             "workers": workers
 

@@ -86,6 +86,18 @@ while True:
 
     print("\n" + "-" * 100)
 
+    print("🔮 AI PREDICTIONS\n")
+
+    for item in report["prediction"]:
+
+        print(
+            f"• {item['parameter']}\n"
+            f"  Prediction : {item['prediction']}\n"
+            f"  Confidence : {item['confidence']}%\n"
+        )
+
+    print("\n" + "-" * 100)
+
     print("👷 WORKERS\n")
 
     for worker in report["workers"]:

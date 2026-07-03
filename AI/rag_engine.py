@@ -41,10 +41,18 @@ class RAGEngine:
 
     def ask(self, question):
 
-        docs = self.db.similarity_search_with_score(
+        results = self.db.similarity_search_with_score(
             question,
             k=3
         )
+
+        docs = []
+
+        for doc, score in results:
+
+            print(f"Similarity Score: {score:.4f}")
+
+            docs.append(doc)
 
         context = "\n\n".join(
             doc.page_content
@@ -52,24 +60,24 @@ class RAGEngine:
         )
 
         prompt = f"""
-You are an Industrial Safety Expert.
+    You are an Industrial Safety Expert.
 
-Answer ONLY using the supplied context.
+    Answer ONLY using the supplied context.
 
-If the answer is not present, say:
+    If the answer is not present in the context, say:
 
-'I could not find this information in the supplied industrial safety manuals.'
+    'I could not find this information in the supplied industrial safety manuals.'
 
-Context:
+    Context:
 
-{context}
+    {context}
 
-Question:
+    Question:
 
-{question}
+    {question}
 
-Answer professionally.
-"""
+    Answer professionally.
+    """
 
         response = self.client.models.generate_content(
             model=self.model,
@@ -83,15 +91,11 @@ Answer professionally.
             "sources": [
 
                 {
-                    "document": doc.metadata.get(
-                        "source",
-                        "Unknown"
+                    "document": os.path.basename(
+                        doc.metadata.get("source", "Unknown")
                     ),
 
-                    "page": doc.metadata.get(
-                        "page",
-                        "-"
-                    )
+                    "page": doc.metadata.get("page", "-")
                 }
 
                 for doc in docs

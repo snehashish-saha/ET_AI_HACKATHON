@@ -9,6 +9,7 @@ if str(ROOT) not in sys.path:
 
 from fastapi import FastAPI
 from report_generator import ReportGenerator
+from AI.rag_engine import RAGEngine
 
 
 app = FastAPI(
@@ -17,6 +18,7 @@ app = FastAPI(
 )
 
 generator = ReportGenerator()
+rag = RAGEngine()
 
 #Message 
 
@@ -32,4 +34,17 @@ def home():
 def report():
 
     return generator.generate_report()
+
+from pydantic import BaseModel
+
+
+class Question(BaseModel):
+
+    question: str
+
+
+@app.post("/ask")
+def ask_question(data: Question):
+
+    return rag.ask(data.question)
 

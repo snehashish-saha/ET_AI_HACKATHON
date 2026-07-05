@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+@theme {
+  --color-kawach-bg: #F0F2F5;
+  --color-primary: #3B6FF0;
+  --color-primary-hover: #2D5CE0;
+  --color-primary-light: #EEF2FF;
+  --color-risk-green: #16A34A;
+  --color-risk-green-bg: #DCFCE7;
+  --color-risk-amber: #D97706;
+  --color-risk-amber-bg: #FEF3C7;
+  --color-risk-orange: #EA580C;
+  --color-risk-orange-bg: #FFEDD5;
+  --color-risk-red: #DC2626;
+  --color-risk-red-bg: #FEE2E2;
+  --color-text-primary: #111827;
+  --color-text-secondary: #6B7280;
+  --color-text-muted: #9CA3AF;
+  --color-sidebar-border: #F3F4F6;
+  --color-divider: #F3F4F6;
+  --color-input-bg: #F9FAFB;
+  --color-input-border: #E5E7EB;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@400;600;700;800&display=swap');
+
+body {
+  background-color: var(--color-kawach-bg);
+  font-family: 'Inter', sans-serif;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #E5E7EB;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #D1D5DB;
+}

@@ -59,6 +59,6 @@ To fully experience the capabilities of Kawach during the hackathon judging:
 
 ## Team iTERNITY
 - Shivam Rai (Sensor & Risk Engine)
-- Yash (Vision & AI Layer)
-- Rohan (Frontend & Dashboard)
-- Aryan (Backend & Integration)
+- Snehashish Saha (Vision & AI Layer)
+- Kartikey Sharma (Frontend & Dashboard)
+- Vinay Chowksey (Backend & Integration)

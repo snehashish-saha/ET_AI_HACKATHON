@@ -1,6 +1,6 @@
 import os
 
-base_dir = "/Users/shivamrai/.gemini/antigravity/scratch/kawach-web"
+base_dir = "./kawach-web"
 
 def write_file(filepath, content):
     full_path = os.path.join(base_dir, filepath)
@@ -68,7 +68,7 @@ export default function Sidebar() {
 
       <div style={{ padding: '20px', display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center', color: '#9CA3AF', fontSize: '12px', borderTop: '1px solid #F3F4F6' }}>
         <Sparkles size={14} />
-        Powered by Gemini AI
+        Safety Intelligence System
       </div>
     </div>
   );
@@ -731,7 +731,7 @@ export default function TeamCredits() {
         </div>
 
         <div style={{ fontSize: '12px', color: '#9CA3AF' }}>
-          Powered by Gemini AI · FastAPI · React · Vite · OISD Standards
+          FastAPI · React · Vite · OISD Standards
         </div>
       </div>
     </AppShell>

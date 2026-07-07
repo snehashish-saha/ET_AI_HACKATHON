@@ -14,12 +14,12 @@ class RAGEngine:
         load_dotenv()
 
         self.client = genai.Client(
-            api_key=os.getenv("GEMINI_API_KEY")
+            api_key=os.getenv("LLM_API_KEY")
         )
 
         self.model = os.getenv(
-            "GEMINI_MODEL",
-            "gemini-3.1-flash-lite"
+            "LLM_MODEL",
+            "standard-model"
         )
 
         print("Loading embedding model...")

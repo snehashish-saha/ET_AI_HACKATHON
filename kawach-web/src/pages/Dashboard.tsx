@@ -621,7 +621,7 @@ export default function Dashboard() {
               </span>
 
               <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#111827', margin: '0 0 12px 0' }}>
-                AI Executive Summary
+                Executive Summary
               </h2>
 
               <p style={{
@@ -652,13 +652,13 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* CELL B: BOTTOM HALF - AI Predictions */}
+            {/* CELL B: BOTTOM HALF - System Predictions */}
             <div style={{
               backgroundColor: '#FFFFFF', borderRadius: '20px', padding: '24px',
               boxShadow: '0 8px 16px rgba(0,0,0,0.06)'
             }}>
               <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#111827', margin: '0 0 16px 0' }}>
-                AI Predictions
+                System Predictions
               </h2>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>

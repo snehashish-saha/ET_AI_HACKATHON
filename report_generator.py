@@ -21,7 +21,7 @@ class ReportGenerator:
     - FastAPI
     - React
     - Database
-    - Gemini
+    - Safety System
     """
 
     def __init__(self): 
@@ -94,7 +94,7 @@ class ReportGenerator:
         current_time = time.time()
 
         if current_time - self.last_summary_time >= 20:
-            print("\n🤖 Gemini Summary Refreshed\n")
+            print("\n📊 Report Summary Refreshed\n")
 
             self.last_summary = self.executive.generate(
                 incident=scenario["incident"],

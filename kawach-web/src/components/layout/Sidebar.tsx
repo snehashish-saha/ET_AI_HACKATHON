@@ -20,7 +20,7 @@ export default function Sidebar() {
         <ShieldCheck size={28} color="#3B6FF0" />
         <div>
           <div style={{ fontSize: '18px', fontWeight: 700, color: '#111827', fontFamily: 'Sora, sans-serif' }}>Kawach</div>
-          <div style={{ fontSize: '11px', color: '#9CA3AF' }}>Safety Intelligence</div>
+            <div style={{ fontSize: '11px', color: '#9CA3AF' }}>AI Safety Intelligence</div>
         </div>
       </div>
       

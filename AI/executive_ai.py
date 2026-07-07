@@ -11,10 +11,10 @@ class ExecutiveAI:
         load_dotenv()
 
         self.client = genai.Client(
-            api_key=os.getenv("GEMINI_API_KEY")
+            api_key=os.getenv("LLM_API_KEY")
         )
 
-        self.model = "gemini-3.1-flash-lite"
+        self.model = "standard-model"
 
     def generate(
         self,

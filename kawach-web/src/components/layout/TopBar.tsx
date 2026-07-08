@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 interface TopBarProps {
   title: string;
@@ -9,6 +9,7 @@ interface TopBarProps {
 }
 
 export default function TopBar({ title, riskLevel, riskScore, onBack }: TopBarProps) {
+  const navigate = useNavigate();
   const emojiMap = {
     LOW: '🟢',
     MEDIUM: '🟡',
@@ -19,20 +20,30 @@ export default function TopBar({ title, riskLevel, riskScore, onBack }: TopBarPr
   return (
     <div style={{ height: '64px', position: 'fixed', top: 0, left: '240px', right: 0, backgroundColor: '#FFFFFF', borderBottom: '1px solid #F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', zIndex: 50 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-        {onBack && (
-          <button 
-            onClick={onBack}
-            style={{ 
-              background: 'transparent', border: 'none', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              width: '32px', height: '32px', borderRadius: '8px',
-              fontSize: '18px', color: '#6B7280', transition: 'all 0.2s'
-            }}
-            className="hover:bg-slate-100"
-          >
-            ←
-          </button>
-        )}
+        <button
+          onClick={() => {
+            if (onBack) return onBack();
+            try {
+              if (window.history && window.history.length > 1) {
+                navigate(-1);
+              } else {
+                navigate('/app/dashboard');
+              }
+            } catch (err) {
+              navigate('/app/dashboard');
+            }
+          }}
+          style={{
+            background: 'transparent', border: 'none', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            width: '32px', height: '32px', borderRadius: '8px',
+            fontSize: '18px', color: '#6B7280', transition: 'all 0.2s'
+          }}
+          className="hover:bg-slate-100"
+          aria-label="Go back to dashboard"
+        >
+          ←
+        </button>
         <div style={{ fontSize: '18px', fontWeight: 600, color: '#111827', fontFamily: 'Sora, sans-serif' }}>
           {title}
         </div>

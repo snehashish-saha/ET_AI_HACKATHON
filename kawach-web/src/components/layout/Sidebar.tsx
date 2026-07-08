@@ -16,13 +16,15 @@ export default function Sidebar() {
 
   return (
     <div style={{ width: '240px', height: '100vh', position: 'fixed', left: 0, top: 0, backgroundColor: '#FFFFFF', borderRight: '1px solid #F3F4F6', display: 'flex', flexDirection: 'column', zIndex: 100 }}>
-      <div style={{ padding: '24px 20px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <ShieldCheck size={28} color="#3B6FF0" />
-        <div>
-          <div style={{ fontSize: '18px', fontWeight: 700, color: '#111827', fontFamily: 'Sora, sans-serif' }}>Kawach</div>
+      <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
+        <div style={{ padding: '24px 20px', display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
+          <ShieldCheck size={28} color="#3B6FF0" />
+          <div>
+            <div style={{ fontSize: '18px', fontWeight: 700, color: '#111827', fontFamily: 'Sora, sans-serif' }}>Kawach</div>
             <div style={{ fontSize: '11px', color: '#9CA3AF' }}>AI Safety Intelligence</div>
+          </div>
         </div>
-      </div>
+      </Link>
       
       <div style={{ flex: 1, padding: '0 12px', display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '16px' }}>
         {navItems.map((item) => {

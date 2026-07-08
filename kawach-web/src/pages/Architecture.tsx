@@ -10,6 +10,8 @@ const RISK_COLOR = {
   HIGH: '#EA580C',
   CRITICAL: '#DC2626',
 };
+// Colors used by the input agent boxes (keeps visual consistency)
+const RULE_COLORS = ['#3B6FF0', '#0EA5E9', '#D97706', '#EA580C', '#7C3AED', '#DC2626'];
 
 export default function Architecture() {
   const { report } = useLiveReport();
@@ -161,9 +163,10 @@ export default function Architecture() {
           {/* TIER 2: RISK REASONING ENGINE */}
           <div style={{
             position: 'absolute', top: '210px', left: '30px', right: '30px', height: '180px',
-            background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)', borderRadius: '24px',
-            padding: '20px 32px', boxShadow: '0 12px 32px rgba(0,0,0,0.15)', zIndex: 10,
-            display: 'grid', gridTemplateColumns: '1.2fr 1fr 1.2fr', gap: '20px', alignItems: 'center'
+            backgroundColor: '#FFFFFF', borderRadius: '24px',
+            padding: '20px 32px', boxShadow: '0 4px 10px rgba(0,0,0,0.04)', zIndex: 10,
+            display: 'grid', gridTemplateColumns: '1.2fr 1fr 1.2fr', gap: '20px', alignItems: 'center',
+            border: '1px solid #E5E7EB'
           }}>
             {/* Left: Rules */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -171,14 +174,15 @@ export default function Architecture() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 {['Explosion risk', 'Fire check', 'Boiler limit', 'Pipeline pressure', 'Permit overlap', 'Emergency stop'].map((rule, idx) => {
                   const isActive = watchLive && ruleActive(idx);
+                  const color = RULE_COLORS[idx] || '#475569';
                   return (
                     <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px' }}>
                       <span style={{
                         width: '6px', height: '6px', borderRadius: '50%',
-                        backgroundColor: isActive ? '#DC2626' : '#475569',
-                        boxShadow: isActive ? '0 0 6px #DC2626' : 'none'
+                        backgroundColor: isActive ? color : `${color}15`,
+                        boxShadow: isActive ? `0 0 8px ${color}` : 'none'
                       }} />
-                      <span style={{ color: isActive ? '#FCA5A5' : '#94A3B8', fontWeight: isActive ? 600 : 400 }}>{rule}</span>
+                      <span style={{ color: isActive ? color : '#94A3B8', fontWeight: isActive ? 700 : 400 }}>{rule}</span>
                     </div>
                   );
                 })}
@@ -201,10 +205,10 @@ export default function Architecture() {
                   />
                 </svg>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 5 }}>
-                  <span style={{ fontSize: '24px', fontWeight: 800, color: '#FFFFFF' }}>
+                  <span style={{ fontSize: '24px', fontWeight: 800, color: '#111827' }}>
                     {report.master_ai.risk_score}%
                   </span>
-                  <span style={{ fontSize: '8px', color: '#94A3B8', textTransform: 'uppercase', marginTop: '2px' }}>
+                  <span style={{ fontSize: '8px', color: '#6B7280', textTransform: 'uppercase', marginTop: '2px' }}>
                     {report.master_ai.risk_level}
                   </span>
                 </div>
@@ -215,7 +219,7 @@ export default function Architecture() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Master Decision</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <span style={{ fontSize: '13px', fontWeight: 700, color: '#FFFFFF' }}>{report.plant.incident}</span>
+                <span style={{ fontSize: '13px', fontWeight: 700, color: '#111827' }}>{report.plant.incident}</span>
                 {report.master_ai.reasons.length > 0 && (
                   <span style={{ fontSize: '11px', color: '#FCA5A5', lineHeight: 1.3 }}>
                     ⚠️ {report.master_ai.reasons[0]}

@@ -92,6 +92,22 @@ export default function LandingPage() {
           0% { transform: translateX(0%); }
           100% { transform: translateX(-50%); }
         }
+        /* How-it-works card hover lift (matches six systems behavior) */
+        .how-step {
+          transition: transform 0.28s cubic-bezier(.2,.9,.2,1), box-shadow 0.28s ease, border-color 0.28s ease;
+          will-change: transform;
+          cursor: pointer;
+        }
+        .how-step:hover {
+          transform: translateY(-10px) scale(1.02);
+          box-shadow: 0 12px 30px rgba(59,111,240,0.10);
+          border-color: #C7D2FE;
+        }
+        .how-step.highlight:hover {
+          transform: translateY(-12px) scale(1.035);
+          box-shadow: 0 18px 40px rgba(124,58,237,0.14);
+          border-color: #C7D2FE;
+        }
       `}</style>
 
       {/* Floating Ambient Particles in Hero Background */}
@@ -398,7 +414,7 @@ export default function LandingPage() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1.1fr auto 1fr', alignItems: 'center', gap: '20px' }}>
           
           {/* Step 1 */}
-          <div style={{
+          <div className="how-step" style={{
             backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB',
             borderRadius: '20px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px'
           }}>
@@ -425,10 +441,10 @@ export default function LandingPage() {
           <div style={{ fontSize: '24px', color: '#3B6FF0' }}>→</div>
 
           {/* Step 2 */}
-          <div style={{
+          <div className="how-step highlight" style={{
             backgroundColor: '#EEF2FF', border: '1px solid #C7D2FE',
             borderRadius: '20px', padding: '32px', display: 'flex', flexDirection: 'column', gap: '20px',
-            transform: 'scale(1.05)', boxShadow: '0 4px 12px rgba(59,111,240,0.1)'
+            boxShadow: '0 4px 12px rgba(59,111,240,0.1)'
           }}>
             <div style={{ fontSize: '12px', color: '#7C3AED', fontWeight: 600 }}>STEP 02 — COGNITIVE FUSION</div>
             <h3 style={{ fontSize: '18px', fontWeight: 700, margin: 0, color: '#111827' }}>Kawach connects the dots</h3>
@@ -452,7 +468,7 @@ export default function LandingPage() {
           <div style={{ fontSize: '24px', color: '#7C3AED' }}>→</div>
 
           {/* Step 3 */}
-          <div style={{
+          <div className="how-step" style={{
             backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB',
             borderRadius: '20px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px'
           }}>

@@ -9,11 +9,11 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import type { LiveReport, ScenarioKey } from '../types/report';
-import { engine, setScenario as engineSetScenario } from '../mock/mockEngine';
 
 interface UseLiveReportReturn {
   report: LiveReport | null;
   setScenario: (key: ScenarioKey) => void;
+  currentScenario: ScenarioKey;
   alertHistory: Array<{
     id: string;
     timestamp: string;
@@ -23,8 +23,11 @@ interface UseLiveReportReturn {
   }>;
 }
 
+let alertIdCounter = 0;
+
 export function useLiveReport(): UseLiveReportReturn {
   const [report, setReport] = useState<LiveReport | null>(null);
+  const [currentScenario, setCurrentScenario] = useState<ScenarioKey>('NORMAL_OPERATION');
   const [alertHistory, setAlertHistory] = useState<Array<{
     id: string;
     timestamp: string;
@@ -34,22 +37,61 @@ export function useLiveReport(): UseLiveReportReturn {
   }>>([]);
 
   useEffect(() => {
-    const unsubscribe = engine.subscribe((newReport) => {
-      setReport(newReport);
-      setAlertHistory([...engine.getAlertHistory()]);
-    });
+    let active = true;
 
-    engine.start();
+    const fetchReport = async () => {
+      try {
+        const res = await fetch('http://localhost:8000/report');
+        if (!res.ok) throw new Error('Network response not ok');
+        const data: LiveReport = await res.json();
+
+        if (!active) return;
+        setReport(data);
+      } catch (err) {
+        console.error("Error fetching live report from backend:", err);
+      }
+
+      try {
+        const alertsRes = await fetch('http://localhost:8000/alerts');
+        if (alertsRes.ok) {
+          const alertsData = await alertsRes.json();
+          if (active) {
+            setAlertHistory(alertsData);
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching alert history from backend:", err);
+      }
+
+      try {
+        const scenRes = await fetch('http://localhost:8000/scenario');
+        if (scenRes.ok) {
+          const scenData = await scenRes.json();
+          if (active) {
+            setCurrentScenario(scenData.scenario as ScenarioKey);
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching scenario from backend:", err);
+      }
+    };
+
+    fetchReport();
+    const interval = setInterval(fetchReport, 1000);
 
     return () => {
-      unsubscribe();
-      engine.stop();
+      active = false;
+      clearInterval(interval);
     };
   }, []);
 
   const setScenario = useCallback((key: ScenarioKey) => {
-    engineSetScenario(key);
+    fetch('http://localhost:8000/scenario', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ scenario: key })
+    }).catch((err) => console.error("Error setting scenario:", err));
   }, []);
 
-  return { report, setScenario, alertHistory };
+  return { report, setScenario, currentScenario, alertHistory };
 }

@@ -13,9 +13,16 @@ class RAGEngine:
 
         load_dotenv()
 
-        self.client = genai.Client(
-            api_key=os.getenv("LLM_API_KEY")
-        )
+        api_key = os.getenv("LLM_API_KEY")
+        if not api_key:
+            print("⚠️ WARNING: LLM_API_KEY not found. RAGEngine will run in local-search mode.")
+            self.client = None
+        else:
+            try:
+                self.client = genai.Client(api_key=api_key)
+            except Exception as e:
+                print(f"⚠️ WARNING: Failed to initialize Gemini Client for RAG: {e}. Running in local-search mode.")
+                self.client = None
 
         self.model = os.getenv(
             "LLM_MODEL",
@@ -58,6 +65,25 @@ class RAGEngine:
             doc.page_content
             for doc in docs
         )
+
+        if self.client is None:
+            # Local fallback: show clean snippets of the matched regulations directly
+            clean_context = context.replace("\n\n", " ").strip()
+            if len(clean_context) > 400:
+                clean_context = clean_context[:400] + "..."
+            return {
+                "answer": (
+                    "⚠️ [GEMINI API KEY MISSING - RUNNING IN LOCAL SEARCH MODE]\n\n"
+                    f"Direct text matched from manuals:\n\n\"{clean_context}\""
+                ),
+                "sources": [
+                    {
+                        "document": os.path.basename(doc.metadata.get("source", "Unknown")),
+                        "page": doc.metadata.get("page", "-")
+                    }
+                    for doc in docs
+                ]
+            }
 
         prompt = f"""
     You are an Industrial Safety Expert.

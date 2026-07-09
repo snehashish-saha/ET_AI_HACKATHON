@@ -96,7 +96,7 @@ export default function SafetyCopilot() {
   }, [messages, isTyping]);
 
   // CHANGE 25: Handle Custom / Suggested Query resolution
-  const handleQuery = (text: string) => {
+  const handleQuery = async (text: string) => {
     if (!text.trim()) return;
 
     // Add user message
@@ -105,8 +105,31 @@ export default function SafetyCopilot() {
     setInputVal('');
     setIsTyping(true);
 
-    // AI thinking simulation
-    setTimeout(() => {
+    try {
+      const res = await fetch('http://localhost:8000/ask', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: text })
+      });
+      if (!res.ok) throw new Error('Backend query failed');
+      const data = await res.json();
+
+      const sourceStr = data.sources && data.sources.length > 0
+        ? Array.from(new Set(data.sources.map((s: any) => `${s.document} (pg. ${s.page})`))).join(', ')
+        : 'Unknown';
+
+      const reply: Message = {
+        id: `m-${Date.now()}-ai`,
+        sender: 'ai',
+        text: data.answer,
+        source: sourceStr,
+        confidence: "Verified RAG match"
+      };
+
+      setMessages((prev) => [...prev, reply]);
+    } catch (err) {
+      console.warn("Backend RAG query failed, falling back to local QA:", err);
+
       const lower = text.toLowerCase();
       let matchedPair = null;
 
@@ -114,7 +137,6 @@ export default function SafetyCopilot() {
       if (lower.includes('hot work') || lower.includes('coke oven') || lower.includes('welding')) {
         matchedPair = QA_KNOWLEDGE_BASE[0]; // Question 1
       } else if (lower.includes('confined space') || lower.includes('storage tank') || lower.includes('ppe')) {
-        // Special dispatch check for 42ppm vs general confined space
         if (lower.includes('42ppm') || lower.includes('ppm') || lower.includes('concentration')) {
           matchedPair = QA_KNOWLEDGE_BASE[6]; // Question 7
         } else {
@@ -123,7 +145,6 @@ export default function SafetyCopilot() {
       } else if (lower.includes('cancel') || lower.includes('permit') || lower.includes('suspend')) {
         matchedPair = QA_KNOWLEDGE_BASE[2]; // Question 3
       } else if (lower.includes('boiler') || lower.includes('pressure') || lower.includes('temperature')) {
-        // Special check for relief valves intervals vs general boiler
         if (lower.includes('interval') || lower.includes('pngrb') || lower.includes('maintenance')) {
           matchedPair = QA_KNOWLEDGE_BASE[7]; // Question 8
         } else {
@@ -148,14 +169,15 @@ export default function SafetyCopilot() {
       } : {
         id: `m-${Date.now()}-ai`,
         sender: 'ai',
-        text: "This question may require consultation with a certified safety officer. For general guidance, OISD-116 Section 2 covers general safety management principles applicable to most industrial situations. Connect the Kawach backend for live RAG answers from our indexed regulatory knowledge base.",
+        text: "This question may require consultation with a certified safety officer. For general guidance, OISD-116 Section 2 covers general safety management principles. (Failed to reach backend for live RAG search)",
         source: "General Guidance Reference",
-        confidence: "Low match score · Grounded on static safety parameters"
+        confidence: "Offline Fallback"
       };
 
       setMessages((prev) => [...prev, reply]);
+    } finally {
       setIsTyping(false);
-    }, 1200);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {

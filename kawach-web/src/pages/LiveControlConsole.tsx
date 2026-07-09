@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppShell from '../components/layout/AppShell';
 import { useLiveReport } from '../hooks/useLiveReport';
-import { getScenarioKey, SCENARIOS } from '../mock/mockEngine';
+import { SCENARIOS } from '../mock/mockEngine';
 import type { ScenarioKey } from '../types/report';
 import { Flame, Thermometer, Gauge, AlertTriangle, Shield, CheckCircle, RotateCw } from 'lucide-react';
 import { AnimatedNumber } from '../components/ui/AnimatedNumber';
@@ -17,9 +17,8 @@ const RISK_COLOR = {
 };
 
 export default function LiveControlConsole() {
-  const { report, setScenario } = useLiveReport();
+  const { report, setScenario, currentScenario: currentKey } = useLiveReport();
   const navigate = useNavigate();
-  const currentKey = getScenarioKey();
 
   // Ramping states
   const [rampingScenario, setRampingScenario] = useState<ScenarioKey | null>(null);

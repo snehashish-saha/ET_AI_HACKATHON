@@ -10,9 +10,16 @@ class ExecutiveAI:
 
         load_dotenv()
 
-        self.client = genai.Client(
-            api_key=os.getenv("LLM_API_KEY")
-        )
+        api_key = os.getenv("LLM_API_KEY")
+        if not api_key:
+            print("⚠️ WARNING: LLM_API_KEY not found. ExecutiveAI will run in simulation mode.")
+            self.client = None
+        else:
+            try:
+                self.client = genai.Client(api_key=api_key)
+            except Exception as e:
+                print(f"⚠️ WARNING: Failed to initialize Gemini Client: {e}. Running in simulation mode.")
+                self.client = None
 
         self.model = "standard-model"
 
@@ -25,6 +32,13 @@ class ExecutiveAI:
         recommendations,
         predictions
     ):
+        if self.client is None:
+            reasons_str = f" due to: {', '.join(reasons)}" if reasons else ""
+            recs_str = f" Immediate actions required: {'; '.join(recommendations)}" if recommendations else " Continue monitoring parameters."
+            return (
+                f"[SIMULATED SUMMARY] {incident} detected in {zone}. Risk level is evaluated as {risk_level}{reasons_str}."
+                f" Current conditions show active anomalies.{recs_str}"
+            )
 
         prompt = f"""
 You are an Industrial Safety Officer.

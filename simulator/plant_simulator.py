@@ -20,8 +20,12 @@ class PlantSimulator:
         self.duration = 20
 
         self.last_change = time.time()
+        self.manual_scenario = None
 
     def get_current_scenario(self):
+
+        if self.manual_scenario is not None:
+            return self.engine.get_incident(self.manual_scenario)
 
         if time.time() - self.last_change >= self.duration:
 
@@ -32,3 +36,10 @@ class PlantSimulator:
         incident_name = self.incident_names[self.current]
 
         return self.engine.get_incident(incident_name)
+
+    def set_scenario(self, name):
+        if name in self.engine.incidents:
+            self.manual_scenario = name
+        elif name == "AUTO" or name is None:
+            self.manual_scenario = None
+            self.last_change = time.time()

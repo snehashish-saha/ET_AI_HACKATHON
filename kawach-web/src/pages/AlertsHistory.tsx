@@ -49,45 +49,30 @@ export default function AlertsHistory() {
     }
   };
 
-  // Generate 25 mock historical entries
+  // Empty history list for real-time live events (blueprint left for future db connection)
   const history = useMemo(() => {
+    // Return empty array to rely purely on live backend telemetry logs.
+    // Blueprint schema for historical logs when database is connected:
+    /*
+    const alertBlueprintExample = {
+      id: "ALT-1000",
+      scenarioKey: "GAS_LEAK",
+      timestamp: "2026-07-09 22:59:32",
+      zone: "Gas Pipeline",
+      incidentType: "Gas Leak",
+      riskScore: 44,
+      riskLevel: "MEDIUM",
+      status: "Resolved",
+      duration: "18m",
+      rulesTriggered: "2/6",
+      reasons: ["Gas concentration exceeded limits."],
+      recommendations: ["Check sensors."],
+      topPrediction: "Pressure increase expected.",
+      sensorVals: { gas: 55, temp: 435, pressure: 6.3 }
+    };
+    */
     const mock: any[] = [];
-    const types = [
-      { t: 'HOT_WORK_GAS_LEAK', s: 'CRITICAL', min: 85, max: 96, c: 3, ruleCount: '4/6', duration: '45m' },
-      { t: 'BOILER_OVERHEATING', s: 'HIGH', min: 62, max: 78, c: 4, ruleCount: '3/6', duration: '28m' },
-      { t: 'VALVE_FAILURE', s: 'HIGH', min: 62, max: 74, c: 4, ruleCount: '2/6', duration: '20m' },
-      { t: 'CONFINED_SPACE', s: 'HIGH', min: 60, max: 70, c: 4, ruleCount: '3/6', duration: '35m' },
-      { t: 'GAS_LEAK', s: 'MEDIUM', min: 32, max: 55, c: 5, ruleCount: '2/6', duration: '18m' },
-      { t: 'NORMAL_OPERATION', s: 'LOW', min: 5, max: 25, c: 5, ruleCount: '0/6', duration: '-' }
-    ];
-    
-    let id = 1000;
-    types.forEach(type => {
-      for(let i=0; i<type.c; i++) {
-        const sc = SCENARIOS[type.t as keyof typeof SCENARIOS];
-        mock.push({
-          id: `ALT-${id++}`,
-          scenarioKey: type.t,
-          timestamp: `2026-07-04 ${String(Math.floor(Math.random()*24)).padStart(2,'0')}:${String(Math.floor(Math.random()*60)).padStart(2,'0')}:00`,
-          zone: sc.zone,
-          incidentType: sc.incident,
-          riskScore: Math.floor(Math.random() * (type.max - type.min) + type.min),
-          riskLevel: type.s as any,
-          status: type.s === 'CRITICAL' ? 'Active' : (Math.random() > 0.5 ? 'Resolved' : 'Acknowledged'),
-          duration: type.duration,
-          rulesTriggered: type.ruleCount,
-          reasons: type.s !== 'LOW' ? ['Gas concentration exceeded tolerance limits.', 'Permit authorization conflicts detected in active zones.'] : [],
-          recommendations: type.s !== 'LOW' ? ['Suspend active hot work permit.', 'Notify safety officer and verify local ventilation systems.'] : [],
-          topPrediction: type.s !== 'LOW' ? 'Cascade pressure hazard expected if temp rises.' : 'System operation normal.',
-          sensorVals: {
-            gas: sc.gas_target + Math.floor(Math.random() * 5),
-            temp: sc.temp_target + Math.floor(Math.random() * 10),
-            pressure: sc.pressure_target + (Math.random() * 0.5)
-          }
-        });
-      }
-    });
-    return mock.sort((a,b) => b.timestamp.localeCompare(a.timestamp));
+    return mock;
   }, []);
 
   // Merge live and mock alerts

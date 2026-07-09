@@ -4,6 +4,7 @@ import AppShell from '../components/layout/AppShell';
 import { useLiveReport } from '../hooks/useLiveReport';
 import { Shield, Send, FileText, CheckCircle } from 'lucide-react';
 import GlassCard from '../components/ui/GlassCard';
+import FormattedText from '../components/ui/FormattedText';
 
 interface Message {
   id: string;
@@ -295,7 +296,7 @@ export default function SafetyCopilot() {
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxWidth: '75%' }}>
                     <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', color: '#111827', borderRadius: '16px 16px 16px 2px', padding: '14px 18px', fontSize: '13.5px', lineHeight: 1.6, boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
-                      {msg.text}
+                      <FormattedText text={msg.text} isDark={true} />
                       
                       {msg.source && (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '12px', borderTop: '1px dashed #E5E7EB', paddingTop: '10px', fontSize: '11px', color: '#6B7280', fontWeight: 500 }}>

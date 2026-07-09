@@ -6,6 +6,7 @@ import { useLiveReport } from '../hooks/useLiveReport';
 import { AnimatedNumber } from '../components/ui/AnimatedNumber';
 import RiskBadge from '../components/ui/RiskBadge';
 import ZoneDetailDrawer from '../drawers/ZoneDetailDrawer';
+import FormattedText from '../components/ui/FormattedText';
 import type { ZoneName, RiskLevel } from '../types/report';
 import { CAMERA_MAP, HAZARD_MAP, ZONE_NAMES } from '../types/report';
 import { LineChart, Line, ResponsiveContainer, Area } from 'recharts';
@@ -34,18 +35,24 @@ export default function Dashboard() {
   const { report, alertHistory } = useLiveReport();
   const [selectedZone, setSelectedZone] = useState<ZoneName | null>(null);
 
-  // Typewriter effect for AI summary
+  // Typewriter effect for AI summary (runs only once on mount)
   const [typedSummary, setTypedSummary] = useState('');
+  const hasAnimatedRef = useRef(false);
   useEffect(() => {
     if (!report) return;
+    const txt = report.executive_summary;
+    if (hasAnimatedRef.current) {
+      setTypedSummary(txt);
+      return;
+    }
     setTypedSummary('');
     let i = 0;
-    const txt = report.executive_summary;
     const interval = setInterval(() => {
       setTypedSummary((prev) => prev + txt.charAt(i));
       i++;
       if (i >= txt.length) {
         clearInterval(interval);
+        hasAnimatedRef.current = true;
       }
     }, 15);
     return () => clearInterval(interval);
@@ -624,13 +631,13 @@ export default function Dashboard() {
                 Executive Summary
               </h2>
 
-              <p style={{
+              <div style={{
                 fontSize: '13px', lineHeight: 1.6, color: '#374151', margin: 0,
-                minHeight: '80px', fontStyle: 'italic', borderLeft: '3px solid #7C3AED',
+                minHeight: '80px', borderLeft: '3px solid #7C3AED',
                 paddingLeft: '12px'
               }}>
-                {typedSummary}
-              </p>
+                <FormattedText text={typedSummary} isDark={true} />
+              </div>
 
               {report.master_ai.reasons.length > 0 && (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '16px' }}>

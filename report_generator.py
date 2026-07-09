@@ -93,7 +93,7 @@ class ReportGenerator:
 
         current_time = time.time()
 
-        if current_time - self.last_summary_time >= 20:
+        if current_time - self.last_summary_time >= 30:
             print("\n📊 Report Summary Refreshed\n")
 
             self.last_summary = self.executive.generate(

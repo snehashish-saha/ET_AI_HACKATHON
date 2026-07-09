@@ -35,26 +35,16 @@ start-frontend:
 	fi
 
 stop-backend:
-	@if [ -f api.pid ]; then \
-		PID=$$(cat api.pid); \
-		echo "Stopping Backend (PID: $$PID)..."; \
-		kill $$PID 2>/dev/null || true; \
-		rm -f api.pid; \
-		echo "Backend stopped."; \
-	else \
-		echo "Backend is not running."; \
-	fi
+	@echo "Stopping Backend..."
+	@pkill -9 -f "uvicorn api.server:app" || true
+	@rm -f api.pid
+	@echo "Backend stopped."
 
 stop-frontend:
-	@if [ -f web.pid ]; then \
-		PID=$$(cat web.pid); \
-		echo "Stopping Frontend (PID: $$PID)..."; \
-		kill $$PID 2>/dev/null || true; \
-		rm -f web.pid; \
-		echo "Frontend stopped."; \
-	else \
-		echo "Frontend is not running."; \
-	fi
+	@echo "Stopping Frontend..."
+	@pkill -9 -f "vite" || true
+	@rm -f web.pid
+	@echo "Frontend stopped."
 
 status:
 	@if [ -f api.pid ] && kill -0 $$(cat api.pid) 2>/dev/null; then \

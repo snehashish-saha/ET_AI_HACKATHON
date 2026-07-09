@@ -20,7 +20,14 @@ interface UseLiveReportReturn {
     zone: string;
     description: string;
     riskLevel: string;
+    status?: string;
+    scenarioKey?: string;
+    riskScore?: number;
+    sensorVals?: { gas: number; temp: number; pressure: number };
+    reasons?: string[];
+    recommendations?: string[];
   }>;
+  updateAlertStatus: (id: string, status: 'Active' | 'Acknowledged' | 'Resolved') => Promise<void>;
 }
 
 let alertIdCounter = 0;
@@ -93,5 +100,22 @@ export function useLiveReport(): UseLiveReportReturn {
     }).catch((err) => console.error("Error setting scenario:", err));
   }, []);
 
-  return { report, setScenario, currentScenario, alertHistory };
+  const updateAlertStatus = useCallback(async (id: string, status: 'Active' | 'Acknowledged' | 'Resolved') => {
+    try {
+      const res = await fetch(`http://localhost:8000/alerts/${id}/status`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+      });
+      if (res.ok) {
+        setAlertHistory((prev) =>
+          prev.map((a) => (a.id === id ? { ...a, status } : a))
+        );
+      }
+    } catch (err) {
+      console.error("Error updating alert status:", err);
+    }
+  }, []);
+
+  return { report, setScenario, currentScenario, alertHistory, updateAlertStatus };
 }

@@ -29,7 +29,7 @@ const RULE_NAME_MAP: Record<string, string> = {
 };
 
 export default function AlertsHistory() {
-  const { report, setScenario, alertHistory } = useLiveReport();
+  const { report, setScenario, alertHistory, updateAlertStatus } = useLiveReport();
   const navigate = useNavigate();
   const [expandedRows, setExpandedRows] = useState<ExpandedRowState>({});
   
@@ -49,67 +49,62 @@ export default function AlertsHistory() {
     }
   };
 
-  // Empty history list for real-time live events (blueprint left for future db connection)
-  const history = useMemo(() => {
-    // Return empty array to rely purely on live backend telemetry logs.
-    // Blueprint schema for historical logs when database is connected:
-    /*
-    const alertBlueprintExample = {
-      id: "ALT-1000",
-      scenarioKey: "GAS_LEAK",
-      timestamp: "2026-07-09 22:59:32",
-      zone: "Gas Pipeline",
-      incidentType: "Gas Leak",
-      riskScore: 44,
-      riskLevel: "MEDIUM",
-      status: "Resolved",
-      duration: "18m",
-      rulesTriggered: "2/6",
-      reasons: ["Gas concentration exceeded limits."],
-      recommendations: ["Check sensors."],
-      topPrediction: "Pressure increase expected.",
-      sensorVals: { gas: 55, temp: 435, pressure: 6.3 }
-    };
-    */
-    const mock: any[] = [];
-    return mock;
-  }, []);
-
-  // Merge live and mock alerts
+  // Merge live alerts and compute durations by subtracting sequential timestamps
   const allAlerts = useMemo(() => {
-    const liveMapped = alertHistory.map(a => {
-      // Find matching scenario key based on description
-      let scenarioKey = 'NORMAL_OPERATION';
-      if (a.description.includes('Hot Work')) scenarioKey = 'HOT_WORK_GAS_LEAK';
-      else if (a.description.includes('Overheating')) scenarioKey = 'BOILER_OVERHEATING';
-      else if (a.description.includes('Failure')) scenarioKey = 'VALVE_FAILURE';
-      else if (a.description.includes('Confined')) scenarioKey = 'CONFINED_SPACE';
-      else if (a.description.includes('Leak')) scenarioKey = 'GAS_LEAK';
+    const chronAlerts = [...alertHistory].sort((a, b) => a.timestamp.localeCompare(b.timestamp));
+
+    const withDuration = chronAlerts.map((a, idx) => {
+      let durationStr = '-';
+      const currentMs = new Date(a.timestamp.replace(' ', 'T')).getTime();
+      const nextAlert = chronAlerts[idx + 1];
+      
+      let diffMs = 0;
+      if (nextAlert) {
+        const nextMs = new Date(nextAlert.timestamp.replace(' ', 'T')).getTime();
+        diffMs = nextMs - currentMs;
+      } else {
+        const nowMs = Date.now();
+        diffMs = nowMs - currentMs;
+      }
+
+      if (diffMs > 0) {
+        const diffSecs = Math.floor(diffMs / 1000);
+        const mins = Math.floor(diffSecs / 60);
+        const secs = diffSecs % 60;
+        if (mins > 0) {
+          durationStr = `${mins}m ${secs}s`;
+        } else {
+          durationStr = `${secs}s`;
+        }
+      } else {
+        durationStr = 'Just now';
+      }
+
+      let incidentType = a.description;
+      if (a.scenarioKey === 'NORMAL_OPERATION') {
+        incidentType = 'Normal Operation';
+      }
 
       return {
         id: a.id,
-        scenarioKey,
+        scenarioKey: a.scenarioKey || 'NORMAL_OPERATION',
         timestamp: a.timestamp,
-        zone: a.zone as any,
-        incidentType: a.description as any,
-        riskScore: a.riskLevel === 'CRITICAL' ? 96 : a.riskLevel === 'HIGH' ? 76 : a.riskLevel === 'MEDIUM' ? 44 : 12,
-        riskLevel: a.riskLevel as any,
-        status: 'Active' as const,
-        duration: 'Just now',
-        rulesTriggered: a.riskLevel === 'CRITICAL' ? '4/6' : '2/6',
-        reasons: [a.description],
-        recommendations: ['Check sensors and issue supervisor alerts immediately.'],
-        topPrediction: 'Immediate containment protocol requested.',
-        sensorVals: {
-          gas: report?.sensor?.gas_ppm || 18,
-          temp: report?.sensor?.temperature_c || 425,
-          pressure: report?.sensor?.pressure_bar || 5.2
-        }
+        zone: a.zone,
+        incidentType,
+        riskScore: a.riskScore || 0,
+        riskLevel: a.riskLevel,
+        status: a.status || 'Active',
+        duration: durationStr,
+        rulesTriggered: a.riskLevel === 'CRITICAL' ? '4/6' : a.riskLevel === 'HIGH' ? '3/6' : a.riskLevel === 'MEDIUM' ? '2/6' : '0/6',
+        reasons: a.reasons || [],
+        recommendations: a.recommendations || [],
+        topPrediction: a.riskLevel === 'LOW' ? 'System operation normal.' : 'Immediate containment protocol requested.',
+        sensorVals: a.sensorVals || { gas: 18, temp: 425, pressure: 5.2 }
       };
     });
 
-    return [...liveMapped, ...history];
-  }, [alertHistory, history, report]);
+    return withDuration.reverse();
+  }, [alertHistory]);
 
   // Apply filters
   const filteredAlerts = useMemo(() => {
@@ -264,7 +259,7 @@ export default function AlertsHistory() {
                           {row.rulesTriggered}
                         </td>
                         <td style={{ padding: '16px' }}>
-                          <RiskBadge level={row.riskLevel} size="sm" />
+                          <RiskBadge level={row.riskLevel as any} size="sm" />
                         </td>
                         <td style={{ padding: '16px' }}>
                           <span style={{
@@ -341,9 +336,65 @@ export default function AlertsHistory() {
                                     </div>
                                   </div>
 
-                                  <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid #E5E7EB', paddingTop: '10px' }}>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #E5E7EB', paddingTop: '10px', alignItems: 'center' }}>
+                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                      {row.status === 'Active' && (
+                                        <>
+                                          <button
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              updateAlertStatus(row.id, 'Acknowledged');
+                                            }}
+                                            style={{
+                                              backgroundColor: '#F3F4F6', color: '#374151', border: '1px solid #D1D5DB',
+                                              borderRadius: '6px', padding: '6px 14px', fontSize: '12px',
+                                              fontWeight: 600, cursor: 'pointer'
+                                            }}
+                                            className="hover:bg-gray-200 transition-colors"
+                                          >
+                                            Acknowledge
+                                          </button>
+                                          <button
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              updateAlertStatus(row.id, 'Resolved');
+                                            }}
+                                            style={{
+                                              backgroundColor: '#DCFCE7', color: '#16A34A', border: '1px solid #BBF7D0',
+                                              borderRadius: '6px', padding: '6px 14px', fontSize: '12px',
+                                              fontWeight: 600, cursor: 'pointer'
+                                            }}
+                                            className="hover:bg-green-100 transition-colors"
+                                          >
+                                            Resolve
+                                          </button>
+                                        </>
+                                      )}
+                                      {row.status === 'Acknowledged' && (
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            updateAlertStatus(row.id, 'Resolved');
+                                          }}
+                                          style={{
+                                            backgroundColor: '#DCFCE7', color: '#16A34A', border: '1px solid #BBF7D0',
+                                            borderRadius: '6px', padding: '6px 14px', fontSize: '12px',
+                                            fontWeight: 600, cursor: 'pointer'
+                                          }}
+                                          className="hover:bg-green-100 transition-colors"
+                                        >
+                                          Resolve
+                                        </button>
+                                      )}
+                                      {row.status === 'Resolved' && (
+                                        <span style={{ fontSize: '12px', color: '#16A34A', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                          ✓ Logged & Resolved
+                                        </span>
+                                      )}
+                                    </div>
+                                    
                                     <button 
-                                      onClick={() => handleViewReport(row.scenarioKey)}
+                                      onClick={(e) => { e.stopPropagation(); handleViewReport(row.scenarioKey); }}
                                       style={{
                                         backgroundColor: '#3B6FF0', color: 'white', border: 'none',
                                         borderRadius: '6px', padding: '6px 14px', fontSize: '12px',

@@ -7,11 +7,12 @@ if str(ROOT) not in sys.path:
     sys.path.append(str(ROOT))
 
 
+from pydantic import BaseModel
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from report_generator import ReportGenerator
 from AI.rag_engine import RAGEngine
-from api.db import init_db, insert_alert, get_last_alert, get_alerts, get_alerts_count
+from api.db import init_db, insert_alert, get_last_alert, get_alerts, get_alerts_count, update_alert_status
 
 # Initialize DB on startup
 init_db()
@@ -59,50 +60,58 @@ def home():
 def report():
     rep = generator.generate_report()
     
-    master_ai = rep.get("master_ai", {})
-    risk_level = master_ai.get("risk_level", "LOW")
-    
-    if risk_level != "LOW":
+    scen_key = generator.plant.manual_scenario
+    if scen_key is None:
+        active_idx = generator.plant.current
+        scen_key = generator.plant.incident_names[active_idx]
+        
+    last = get_last_alert()
+    if not last or last["scenario_key"] != scen_key:
+        count = get_alerts_count()
+        id_str = f"ALT-{1000 + count}"
+        
+        master_ai = rep.get("master_ai", {})
+        risk_level = master_ai.get("risk_level", "LOW")
         plant = rep.get("plant", {})
         zone = plant.get("zone", "Unknown")
+        sensor = rep.get("sensor", {})
+        gas = sensor.get("gas_ppm", 0.0)
+        temp = sensor.get("temperature_c", 0.0)
+        pressure = sensor.get("pressure_bar", 0.0)
         
-        last = get_last_alert()
-        if not last or last["zone"] != zone or last["risk_level"] != risk_level:
-            count = get_alerts_count()
-            id_str = f"ALT-{1000 + count}"
-            
-            scen_key = generator.plant.manual_scenario
-            if scen_key is None:
-                active_idx = generator.plant.current
-                scen_key = generator.plant.incident_names[active_idx]
-                
-            sensor = rep.get("sensor", {})
-            gas = sensor.get("gas_ppm", 0.0)
-            temp = sensor.get("temperature_c", 0.0)
-            pressure = sensor.get("pressure_bar", 0.0)
-            
-            insert_alert(
-                id_str=id_str,
-                scenario_key=scen_key,
-                timestamp=rep.get("timestamp", ""),
-                zone=zone,
-                description=plant.get("incident", "Anomaly detected"),
-                risk_level=risk_level,
-                risk_score=master_ai.get("risk_score", 0),
-                gas=gas,
-                temp=temp,
-                pressure=pressure,
-                reasons=master_ai.get("reasons", []),
-                recommendations=master_ai.get("recommendations", [])
-            )
-            
+        status = 'Resolved' if scen_key == 'NORMAL_OPERATION' else 'Active'
+        
+        insert_alert(
+            id_str=id_str,
+            scenario_key=scen_key,
+            timestamp=rep.get("timestamp", ""),
+            zone=zone,
+            description=plant.get("incident", "Anomaly detected"),
+            risk_level=risk_level,
+            risk_score=master_ai.get("risk_score", 0),
+            gas=gas,
+            temp=temp,
+            pressure=pressure,
+            reasons=master_ai.get("reasons", []),
+            recommendations=master_ai.get("recommendations", []),
+            status=status
+        )
+        
     return rep
 
 @app.get("/alerts")
 def get_alert_history():
     return get_alerts()
 
-from pydantic import BaseModel
+class StatusUpdate(BaseModel):
+    status: str
+
+@app.post("/alerts/{alert_id}/status")
+def update_status(alert_id: str, data: StatusUpdate):
+    update_alert_status(alert_id, data.status)
+    return {"status": "success", "alert_id": alert_id, "new_status": data.status}
+
+
 
 
 class Question(BaseModel):

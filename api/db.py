@@ -24,9 +24,17 @@ def init_db():
             temp REAL,
             pressure REAL,
             reasons TEXT,
-            recommendations TEXT
+            recommendations TEXT,
+            status TEXT DEFAULT 'Active'
         )
     """)
+    
+    # Check if 'status' column exists (migration helper for existing db file)
+    try:
+        cursor.execute("SELECT status FROM alerts LIMIT 1")
+    except sqlite3.OperationalError:
+        cursor.execute("ALTER TABLE alerts ADD COLUMN status TEXT DEFAULT 'Active'")
+        
     conn.commit()
     conn.close()
     print("SQLite Database initialized at:", DB_PATH)
@@ -39,13 +47,13 @@ def get_alerts_count():
     conn.close()
     return count
 
-def insert_alert(id_str, scenario_key, timestamp, zone, description, risk_level, risk_score, gas, temp, pressure, reasons, recommendations):
+def insert_alert(id_str, scenario_key, timestamp, zone, description, risk_level, risk_score, gas, temp, pressure, reasons, recommendations, status='Active'):
     conn = get_connection()
     cursor = conn.cursor()
     try:
         cursor.execute("""
-            INSERT INTO alerts (id, scenario_key, timestamp, zone, description, risk_level, risk_score, gas, temp, pressure, reasons, recommendations)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO alerts (id, scenario_key, timestamp, zone, description, risk_level, risk_score, gas, temp, pressure, reasons, recommendations, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             id_str,
             scenario_key,
@@ -58,7 +66,8 @@ def insert_alert(id_str, scenario_key, timestamp, zone, description, risk_level,
             temp,
             pressure,
             json.dumps(reasons),
-            json.dumps(recommendations)
+            json.dumps(recommendations),
+            status
         ))
         conn.commit()
     except sqlite3.IntegrityError:
@@ -69,18 +78,25 @@ def insert_alert(id_str, scenario_key, timestamp, zone, description, risk_level,
 def get_last_alert():
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT zone, risk_level FROM alerts ORDER BY timestamp DESC LIMIT 1")
+    cursor.execute("SELECT scenario_key, zone, risk_level FROM alerts ORDER BY timestamp DESC LIMIT 1")
     row = cursor.fetchone()
     conn.close()
     if row:
-        return {"zone": row[0], "risk_level": row[1]}
+        return {"scenario_key": row[0], "zone": row[1], "risk_level": row[2]}
     return None
+
+def update_alert_status(alert_id, status):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE alerts SET status = ? WHERE id = ?", (status, alert_id))
+    conn.commit()
+    conn.close()
 
 def get_alerts():
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("""
-        SELECT id, scenario_key, timestamp, zone, description, risk_level, risk_score, gas, temp, pressure, reasons, recommendations
+        SELECT id, scenario_key, timestamp, zone, description, risk_level, risk_score, gas, temp, pressure, reasons, recommendations, status
         FROM alerts
         ORDER BY timestamp DESC
         LIMIT 50
@@ -114,6 +130,7 @@ def get_alerts():
                 "pressure": r[9]
             },
             "reasons": reasons_list,
-            "recommendations": recs_list
+            "recommendations": recs_list,
+            "status": r[12] if len(r) > 12 else "Active"
         })
     return alerts

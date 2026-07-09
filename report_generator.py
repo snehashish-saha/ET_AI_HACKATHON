@@ -45,6 +45,9 @@ class ReportGenerator:
         self.executive = ExecutiveAI()
         self.last_summary = ""
         self.last_summary_time = 0
+        self.last_incident = ""
+        self.last_zone = ""
+        self.last_risk_level = ""
 
     def generate_report(self):
 
@@ -93,13 +96,27 @@ class ReportGenerator:
 
         current_time = time.time()
 
-        if current_time - self.last_summary_time >= 30:
+        incident = scenario.get("incident", "NORMAL_OPERATION")
+        zone = scenario.get("zone", "None")
+        risk_level = ai_result.get("risk_level", "LOW")
+
+        state_changed = (
+            incident != self.last_incident or
+            zone != self.last_zone or
+            risk_level != self.last_risk_level
+        )
+
+        if state_changed or current_time - self.last_summary_time >= 30:
             print("\n📊 Report Summary Refreshed\n")
 
+            self.last_incident = incident
+            self.last_zone = zone
+            self.last_risk_level = risk_level
+
             self.last_summary = self.executive.generate(
-                incident=scenario["incident"],
-                zone=scenario["zone"],
-                risk_level=ai_result["risk_level"],
+                incident=incident,
+                zone=zone,
+                risk_level=risk_level,
                 reasons=ai_result["reasons"],
                 recommendations=ai_result["recommendations"],
                 predictions=predictions

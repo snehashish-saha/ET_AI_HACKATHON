@@ -35,28 +35,6 @@ export default function Dashboard() {
   const { report, alertHistory } = useLiveReport();
   const [selectedZone, setSelectedZone] = useState<ZoneName | null>(null);
 
-  // Typewriter effect for AI summary (runs only once on mount)
-  const [typedSummary, setTypedSummary] = useState('');
-  const hasAnimatedRef = useRef(false);
-  useEffect(() => {
-    if (!report) return;
-    const txt = report.executive_summary;
-    if (hasAnimatedRef.current) {
-      setTypedSummary(txt);
-      return;
-    }
-    setTypedSummary('');
-    let i = 0;
-    const interval = setInterval(() => {
-      setTypedSummary((prev) => prev + txt.charAt(i));
-      i++;
-      if (i >= txt.length) {
-        clearInterval(interval);
-        hasAnimatedRef.current = true;
-      }
-    }, 15);
-    return () => clearInterval(interval);
-  }, [report?.executive_summary]);
 
   // Keep last 30 seconds of sensor values for sparkline
   const [sensorHistory, setSensorHistory] = useState<any[]>([]);
@@ -636,7 +614,13 @@ export default function Dashboard() {
                 minHeight: '80px', borderLeft: '3px solid #7C3AED',
                 paddingLeft: '12px'
               }}>
-                <FormattedText text={typedSummary} isDark={true} />
+                <motion.div
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6 }}
+                >
+                  <FormattedText text={report.executive_summary} isDark={true} />
+                </motion.div>
               </div>
 
               {report.master_ai.reasons.length > 0 && (

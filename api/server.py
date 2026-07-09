@@ -121,6 +121,59 @@ class Question(BaseModel):
 
 @app.post("/ask")
 def ask_question(data: Question):
+    # Fetch current report state
+    rep = generator.generate_report()
+    plant = rep.get("plant", {})
+    sensor = rep.get("sensor", {})
+    master_ai = rep.get("master_ai", {})
+    
+    # Get active alerts
+    alerts_list = get_alerts()
+    active_alerts = [a for a in alerts_list if a.get("status") == "Active"]
+    
+    # Construct database logs summary
+    alerts_summary = ""
+    if alerts_list:
+        alerts_summary = "\n".join(
+            f"- [{a['timestamp']}] {a['id']}: {a['description']} in {a['zone']} (Status: {a['status']}, Risk: {a['riskLevel']})"
+            for a in alerts_list[:5]
+        )
+    else:
+        alerts_summary = "No alerts logged in the system."
 
-    return rag.ask(data.question)
+    # Construct the formatted live_context string
+    live_context = f"""
+[LIVE PLANT TELEMETRY - SYSTEM STATUS]
+Current Scenario: {plant.get("incident", "NORMAL_OPERATION")} (State: {plant.get("state", "SAFE")})
+Active Zone: {plant.get("zone", "None")}
+
+Sensor Values:
+- Gas Concentration: {sensor.get("gas_ppm", 0.0)} ppm
+- Temperature: {sensor.get("temperature_c", 0.0)} °C
+- Pressure: {sensor.get("pressure_bar", 0.0)} bar
+- Humidity: {sensor.get("humidity_percent", 0.0)} %
+
+Compound Safety Risk:
+- Risk Level: {master_ai.get("risk_level", "LOW")} (Risk Score: {master_ai.get("risk_score", 0)}/100)
+- Reasons for Risk: {", ".join(master_ai.get("reasons", ["System operational and stable."]))}
+- Action Recommendations: {", ".join(master_ai.get("recommendations", ["No corrective actions needed."]))}
+
+Active Safety Alerts (from SQLite DB):
+{alerts_summary}
+"""
+
+    # Construct the telemetry dict for local fallback
+    live_data_dict = {
+        "scenario": plant.get("incident", "NORMAL_OPERATION"),
+        "state": plant.get("state", "SAFE"),
+        "zone": plant.get("zone", "None"),
+        "gas": sensor.get("gas_ppm", 0.0),
+        "temperature": sensor.get("temperature_c", 0.0),
+        "pressure": sensor.get("pressure_bar", 0.0),
+        "risk_level": master_ai.get("risk_level", "LOW"),
+        "risk_score": master_ai.get("risk_score", 0),
+        "active_alerts": len(active_alerts)
+    }
+
+    return rag.ask(data.question, live_context=live_context, live_data_dict=live_data_dict)
 

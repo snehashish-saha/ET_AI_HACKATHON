@@ -21,7 +21,10 @@ class ExecutiveAI:
                 print(f"⚠️ WARNING: Failed to initialize Gemini Client: {e}. Running in simulation mode.")
                 self.client = None
 
-        self.model = "standard-model"
+        self.model = os.getenv(
+            "LLM_MODEL",
+            "gemini-1.5-flash"
+        )
 
     def generate(
         self,

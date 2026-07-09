@@ -26,7 +26,7 @@ class RAGEngine:
 
         self.model = os.getenv(
             "LLM_MODEL",
-            "standard-model"
+            "gemini-1.5-flash"
         )
 
         print("Loading embedding model...")
@@ -46,7 +46,7 @@ class RAGEngine:
         print("✅ RAG Engine Ready")
 
 
-    def ask(self, question):
+    def ask(self, question, live_context=None, live_data_dict=None):
 
         results = self.db.similarity_search_with_score(
             question,
@@ -66,15 +66,36 @@ class RAGEngine:
             for doc in docs
         )
 
+        is_asking_telemetry = False
+        if live_data_dict:
+            keywords = ["current", "temperature", "temp", "pressure", "gas", "ppm", "sensor", "value", "val", "alert", "live", "scenario", "zone", "boiler", "tank", "leak", "operating", "normal", "reading", "status"]
+            lower_q = question.lower()
+            if any(k in lower_q for k in keywords):
+                is_asking_telemetry = True
+
         if self.client is None:
             # Local fallback: show clean snippets of the matched regulations directly
+            telemetry_summary = ""
+            if is_asking_telemetry and live_data_dict:
+                alerts_str = f"{live_data_dict['active_alerts']} Active" if live_data_dict['active_alerts'] > 0 else "0 (Safe)"
+                telemetry_summary = (
+                    f"Current Plant Live Telemetry:\n"
+                    f"- Scenario: {live_data_dict['scenario']} in {live_data_dict['zone']} ({live_data_dict['state']})\n"
+                    f"- Risk Level: {live_data_dict['risk_level']} (Score: {live_data_dict['risk_score']}/100)\n"
+                    f"- Gas Level: {live_data_dict['gas']} ppm\n"
+                    f"- Temperature: {live_data_dict['temperature']} °C\n"
+                    f"- Pressure: {live_data_dict['pressure']} bar\n"
+                    f"- Active Alerts in SQLite: {alerts_str}\n\n"
+                )
+
             clean_context = context.replace("\n\n", " ").strip()
             if len(clean_context) > 400:
                 clean_context = clean_context[:400] + "..."
             return {
                 "answer": (
                     "⚠️ [GEMINI API KEY MISSING - RUNNING IN LOCAL SEARCH MODE]\n\n"
-                    f"Direct text matched from manuals:\n\n\"{clean_context}\""
+                    f"{telemetry_summary}"
+                    f"Direct text matched from safety manuals:\n\n\"{clean_context}\""
                 ),
                 "sources": [
                     {
@@ -85,24 +106,24 @@ class RAGEngine:
                 ]
             }
 
+        prompt_context = f"Safety Regulation Context (retrieved from manuals):\n{context}"
+        if live_context:
+            prompt_context = f"Live Plant Telemetry & Current Status:\n{live_context}\n\n" + prompt_context
+
         prompt = f"""
-    You are an Industrial Safety Expert.
-
-    Answer ONLY using the supplied context.
-
-    If the answer is not present in the context, say:
-
-    'I could not find this information in the supplied industrial safety manuals.'
+    You are an Industrial Safety Expert with access to the plant's live telemetry, active alerts database, and safety regulations.
 
     Context:
-
-    {context}
+    {prompt_context}
 
     Question:
-
     {question}
 
-    Answer professionally.
+    Instructions:
+    - Answer the question professionally.
+    - If the user asks about the current state of the plant, sensor values, or active alerts, refer to the Live Plant Telemetry section.
+    - If the user asks about regulations, compliance standards (OSHA/OISD/PNGRB), or general safety guidance, refer to the Safety Regulation Context.
+    - Do NOT invent facts. Keep answers concise and strictly grounded.
     """
 
         response = self.client.models.generate_content(

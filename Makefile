@@ -15,45 +15,45 @@ start: start-backend start-frontend
 stop: stop-backend stop-frontend
 
 start-backend:
-	@if [ -f api.pid ] && kill -0 $$(cat api.pid) 2>/dev/null; then \
-		echo "Backend is already running."; \
+	@if lsof -i :8000 >/dev/null 2>&1; then \
+		echo "Backend is already running on port 8000."; \
 	else \
 		echo "Starting Backend..."; \
 		conda run -n $(CONDA_ENV) uvicorn api.server:app --host 0.0.0.0 --port 8000 > backend.log 2>&1 & echo $$! > api.pid; \
 		sleep 1; \
-		echo "Backend started (PID: $$(cat api.pid))."; \
+		echo "Backend started."; \
 	fi
 
 start-frontend:
-	@if [ -f web.pid ] && kill -0 $$(cat web.pid) 2>/dev/null; then \
-		echo "Frontend is already running."; \
+	@if lsof -i :5173 >/dev/null 2>&1; then \
+		echo "Frontend is already running on port 5173."; \
 	else \
 		echo "Starting Frontend..."; \
 		(cd kawach-web && conda run -n $(CONDA_ENV) npm run dev -- --host > ../frontend.log 2>&1) & echo $$! > web.pid; \
 		sleep 1; \
-		echo "Frontend started (PID: $$(cat web.pid))."; \
+		echo "Frontend started."; \
 	fi
 
 stop-backend:
 	@echo "Stopping Backend..."
-	@pkill -9 -f "uvicorn api.server:app" || true
+	@pkill -9 -f "[u]vicorn api.server:app" || true
 	@rm -f api.pid
 	@echo "Backend stopped."
 
 stop-frontend:
 	@echo "Stopping Frontend..."
-	@pkill -9 -f "vite" || true
+	@pkill -9 -f "[v]ite" || true
 	@rm -f web.pid
 	@echo "Frontend stopped."
 
 status:
-	@if [ -f api.pid ] && kill -0 $$(cat api.pid) 2>/dev/null; then \
-		echo "Backend: RUNNING (PID: $$(cat api.pid))"; \
+	@if lsof -i :8000 >/dev/null 2>&1; then \
+		echo "Backend: RUNNING"; \
 	else \
 		echo "Backend: STOPPED"; \
 	fi
-	@if [ -f web.pid ] && kill -0 $$(cat web.pid) 2>/dev/null; then \
-		echo "Frontend: RUNNING (PID: $$(cat web.pid))"; \
+	@if lsof -i :5173 >/dev/null 2>&1; then \
+		echo "Frontend: RUNNING"; \
 	else \
 		echo "Frontend: STOPPED"; \
 	fi

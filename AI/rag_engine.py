@@ -14,8 +14,8 @@ class RAGEngine:
         load_dotenv()
 
         api_key = os.getenv("LLM_API_KEY")
-        if not api_key:
-            print("⚠️ WARNING: LLM_API_KEY not found. RAGEngine will run in local-search mode.")
+        if not api_key or api_key == "YOUR_API_KEY" or api_key.startswith("YOUR_"):
+            print("⚠️ WARNING: LLM_API_KEY not found or is a placeholder. RAGEngine will run in local-search mode.")
             self.client = None
         else:
             try:

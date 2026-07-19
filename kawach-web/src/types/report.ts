@@ -98,6 +98,15 @@ export interface Worker {
   status: WorkerStatus;
 }
 
+export interface CameraData {
+  person_count: number;
+  helmet_count: number;
+  vest_count: number;
+  fire_detected: boolean;
+  smoke_detected: boolean;
+  detections: Array<{ label: string; confidence: number }>;
+}
+
 export interface LiveReport {
   timestamp: string;
   plant: PlantInfo;
@@ -108,6 +117,7 @@ export interface LiveReport {
   prediction: Prediction[];
   executive_summary: string;
   workers: Worker[];
+  vision?: Record<string, CameraData>;
 }
 
 export type ScenarioKey =

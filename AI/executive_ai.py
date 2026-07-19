@@ -11,8 +11,8 @@ class ExecutiveAI:
         load_dotenv()
 
         api_key = os.getenv("LLM_API_KEY")
-        if not api_key:
-            print("⚠️ WARNING: LLM_API_KEY not found. ExecutiveAI will run in simulation mode.")
+        if not api_key or api_key == "YOUR_API_KEY" or api_key.startswith("YOUR_"):
+            print("⚠️ WARNING: LLM_API_KEY not found or is a placeholder. ExecutiveAI will run in simulation mode.")
             self.client = None
         else:
             try:

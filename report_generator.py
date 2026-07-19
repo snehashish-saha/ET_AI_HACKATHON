@@ -106,7 +106,8 @@ class ReportGenerator:
         # ---------------------------------------
 
         workers = self.worker.generate_workers(
-            scenario
+            scenario,
+            vision_data=vision_data
         )
 
         # ---------------------------------------
@@ -123,7 +124,8 @@ class ReportGenerator:
 
         ai_result = self.compound_ai.evaluate(
             sensor_data,
-            scenario
+            scenario,
+            vision=vision_data
         )
 
         predictions = self.predictor.predict(

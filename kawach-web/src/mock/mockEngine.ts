@@ -291,6 +291,72 @@ function generateWorkers(count: number, zone: ZoneName): Worker[] {
   return workers;
 }
 
+function generateWorkersFromVision(
+  vision: Record<string, any>,
+  scenarioZone: ZoneName,
+  scenarioWorkers: number,
+): Worker[] {
+  const ZONE_TO_CAMERA_KEY: Record<string, string> = {
+    'Boiler Room': 'camera_1',
+    'Gas Pipeline': 'camera_2',
+    'Coke Oven Battery': 'camera_3',
+    'Valve Station': 'camera_4',
+    'Storage Tank': 'camera_5',
+  };
+
+  const workers: Worker[] = [];
+  let workerIdCounter = 1;
+
+  const allZones: ZoneName[] = [
+    'Boiler Room',
+    'Gas Pipeline',
+    'Coke Oven Battery',
+    'Valve Station',
+    'Storage Tank',
+    'Control Room',
+  ];
+
+  for (const zone of allZones) {
+    const cameraKey = ZONE_TO_CAMERA_KEY[zone];
+    const cameraData = cameraKey ? vision[cameraKey] : null;
+
+    let personCount = 0;
+    let helmetCount = 0;
+    let vestCount = 0;
+
+    if (cameraData) {
+      personCount = cameraData.person_count;
+      helmetCount = cameraData.helmet_count;
+      vestCount = cameraData.vest_count;
+    } else {
+      if (zone === scenarioZone) {
+        personCount = scenarioWorkers;
+      } else {
+        personCount = 0;
+      }
+      helmetCount = personCount;
+      vestCount = personCount;
+    }
+
+    for (let i = 0; i < personCount; i++) {
+      const hasHelmet = i < helmetCount;
+      const hasVest = i < vestCount;
+
+      workers.push({
+        id: `W${String(workerIdCounter).padStart(3, '0')}`,
+        name: WORKER_NAMES[(workerIdCounter - 1) % WORKER_NAMES.length],
+        zone,
+        helmet: hasHelmet,
+        vest: hasVest,
+        status: WORKER_STATUSES[Math.floor(Math.random() * WORKER_STATUSES.length)],
+      });
+      workerIdCounter++;
+    }
+  }
+
+  return workers;
+}
+
 // ─── Executive Summary Generator ────────────────────────────
 
 function generateExecutiveSummary(
@@ -442,6 +508,20 @@ class MockEngine {
       }
     }
 
+    const vision: Record<string, any> = {
+      camera_1: { person_count: 2, helmet_count: 2, vest_count: 2, fire_detected: false, smoke_detected: false, detections: [{ label: 'person', confidence: 0.94 }] },
+      camera_2: { person_count: 1, helmet_count: 1, vest_count: 1, fire_detected: false, smoke_detected: false, detections: [{ label: 'person', confidence: 0.88 }] },
+      camera_3: { person_count: 3, helmet_count: 2, vest_count: 3, fire_detected: false, smoke_detected: false, detections: [{ label: 'person', confidence: 0.95 }] },
+      camera_4: { person_count: 0, helmet_count: 0, vest_count: 0, fire_detected: false, smoke_detected: false, detections: [] },
+      camera_5: { person_count: 1, helmet_count: 1, vest_count: 0, fire_detected: false, smoke_detected: false, detections: [{ label: 'person', confidence: 0.91 }] },
+    };
+
+    if (scenario.zone === 'Coke Oven Battery' && masterAI.risk_level === 'CRITICAL') {
+      vision.camera_3.fire_detected = true;
+      vision.camera_3.smoke_detected = true;
+      vision.camera_3.detections.push({ label: 'fire', confidence: 0.98 });
+    }
+
     const report: LiveReport = {
       timestamp: formatTimestamp(),
       plant,
@@ -451,7 +531,8 @@ class MockEngine {
       geo_map: geoMap,
       prediction: predictions,
       executive_summary: executiveSummary,
-      workers: this.state.workers,
+      workers: generateWorkersFromVision(vision, scenario.zone, scenario.workers),
+      vision,
     };
 
     return report;

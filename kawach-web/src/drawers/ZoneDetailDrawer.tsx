@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { X, Flame, Wrench, User, Sparkles, Check, AlertTriangle, Shield, Thermometer, Gauge, ChevronRight } from 'lucide-react';
+import { X, Flame, Wrench, User, Sparkles, Check, AlertTriangle, Shield, Thermometer, Gauge, ChevronRight, Camera } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import type { ZoneName, LiveReport, RiskLevel, PermitType } from '../types/report';
 import { CAMERA_MAP, HAZARD_MAP } from '../types/report';
@@ -327,6 +327,136 @@ export default function ZoneDetailDrawer({ zoneName, report, onClose }: ZoneDeta
                     </tbody>
                   </table>
                 )}
+              </div>
+
+              {/* CCTV Live AI Stream Section */}
+              <div style={{ marginTop: '16px' }}>
+                <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#111827', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Camera size={16} color="#3B6FF0" />
+                  CCTV Live AI Stream Analytics
+                </h3>
+                
+                {(() => {
+                  const ZONE_TO_CAMERA_KEY: Record<string, string> = {
+                    'Boiler Room': 'camera_1',
+                    'Gas Pipeline': 'camera_2',
+                    'Coke Oven Battery': 'camera_3',
+                    'Valve Station': 'camera_4',
+                    'Storage Tank': 'camera_5',
+                  };
+                  const cameraKey = ZONE_TO_CAMERA_KEY[zoneName];
+                  const cameraData = cameraKey ? report.vision?.[cameraKey] : undefined;
+
+                  if (cameraData) {
+                    return (
+                      <div style={{
+                        backgroundColor: '#0F172A',
+                        borderRadius: '16px',
+                        padding: '20px',
+                        color: '#F8FAFC',
+                        position: 'relative',
+                        overflow: 'hidden',
+                        border: '1px solid #1E293B',
+                        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.3)'
+                      }}>
+                        {/* Simulated Camera Overlay Header */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid #334155', paddingBottom: '10px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#EF4444', animation: 'pulseRedText 1s infinite alternate' }} />
+                            <span style={{ fontSize: '12px', fontWeight: 700, color: '#94A3B8', letterSpacing: '0.05em' }}>LIVE FEED | {cameraId}</span>
+                          </div>
+                          <span style={{ fontSize: '10px', color: '#64748B', fontFamily: 'monospace' }}>YOLOv8n-PPE active</span>
+                        </div>
+
+                        {/* Camera Feed Stats Grid */}
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '16px' }}>
+                          <div style={{ backgroundColor: '#1E293B', borderRadius: '8px', padding: '12px', textAlign: 'center' }}>
+                            <div style={{ fontSize: '10px', color: '#94A3B8', textTransform: 'uppercase', fontWeight: 600 }}>Detected Persons</div>
+                            <div style={{ fontSize: '20px', fontWeight: 800, marginTop: '4px', color: '#38BDF8' }}>{cameraData.person_count}</div>
+                          </div>
+                          <div style={{ backgroundColor: '#1E293B', borderRadius: '8px', padding: '12px', textAlign: 'center' }}>
+                            <div style={{ fontSize: '10px', color: '#94A3B8', textTransform: 'uppercase', fontWeight: 600 }}>Helmet Wearers</div>
+                            <div style={{ fontSize: '20px', fontWeight: 800, marginTop: '4px', color: cameraData.helmet_count === cameraData.person_count ? '#34D399' : '#F87171' }}>
+                              {cameraData.helmet_count} / {cameraData.person_count}
+                            </div>
+                          </div>
+                          <div style={{ backgroundColor: '#1E293B', borderRadius: '8px', padding: '12px', textAlign: 'center' }}>
+                            <div style={{ fontSize: '10px', color: '#94A3B8', textTransform: 'uppercase', fontWeight: 600 }}>Safety Vests</div>
+                            <div style={{ fontSize: '20px', fontWeight: 800, marginTop: '4px', color: cameraData.vest_count === cameraData.person_count ? '#34D399' : '#F87171' }}>
+                              {cameraData.vest_count} / {cameraData.person_count}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Compliance Progress Bars */}
+                        {cameraData.person_count > 0 && (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px', backgroundColor: '#1E293B', padding: '12px', borderRadius: '8px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px' }}>
+                              <span style={{ color: '#94A3B8' }}>Helmet Compliance</span>
+                              <span style={{ fontWeight: 700, color: '#F8FAFC' }}>{Math.round((cameraData.helmet_count / cameraData.person_count) * 100)}%</span>
+                            </div>
+                            <div style={{ height: '6px', backgroundColor: '#334155', borderRadius: '3px', overflow: 'hidden' }}>
+                              <div style={{ height: '100%', width: `${(cameraData.helmet_count / cameraData.person_count) * 100}%`, backgroundColor: cameraData.helmet_count === cameraData.person_count ? '#10B981' : '#F59E0B', transition: 'width 0.5s ease' }} />
+                            </div>
+
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginTop: '4px' }}>
+                              <span style={{ color: '#94A3B8' }}>Vest Compliance</span>
+                              <span style={{ fontWeight: 700, color: '#F8FAFC' }}>{Math.round((cameraData.vest_count / cameraData.person_count) * 100)}%</span>
+                            </div>
+                            <div style={{ height: '6px', backgroundColor: '#334155', borderRadius: '3px', overflow: 'hidden' }}>
+                              <div style={{ height: '100%', width: `${(cameraData.vest_count / cameraData.person_count) * 100}%`, backgroundColor: cameraData.vest_count === cameraData.person_count ? '#10B981' : '#F59E0B', transition: 'width 0.5s ease' }} />
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Hazard Detection Alarms */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                          <div style={{
+                            display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 14px', borderRadius: '8px',
+                            backgroundColor: cameraData.fire_detected ? '#450A0A' : '#064E3B',
+                            border: `1px solid ${cameraData.fire_detected ? '#EF4444' : '#10B981'}`
+                          }}>
+                            <Flame size={14} color={cameraData.fire_detected ? '#EF4444' : '#10B981'} />
+                            <span style={{ fontSize: '11px', fontWeight: 700, color: cameraData.fire_detected ? '#FCA5A5' : '#A7F3D0' }}>
+                              {cameraData.fire_detected ? 'FIRE DETECTED' : 'No Fire Detected'}
+                            </span>
+                          </div>
+                          
+                          <div style={{
+                            display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 14px', borderRadius: '8px',
+                            backgroundColor: cameraData.smoke_detected ? '#451A03' : '#064E3B',
+                            border: `1px solid ${cameraData.smoke_detected ? '#F59E0B' : '#10B981'}`,
+                          }}>
+                            <Flame size={14} color={cameraData.smoke_detected ? '#F59E0B' : '#10B981'} />
+                            <span style={{ fontSize: '11px', fontWeight: 700, color: cameraData.smoke_detected ? '#FCD34D' : '#A7F3D0' }}>
+                              {cameraData.smoke_detected ? 'SMOKE DETECTED' : 'No Smoke Detected'}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* YOLO Detections list */}
+                        {cameraData.detections && cameraData.detections.length > 0 && (
+                          <div style={{ marginTop: '16px', borderTop: '1px solid #334155', paddingTop: '12px' }}>
+                            <div style={{ fontSize: '10px', color: '#94A3B8', textTransform: 'uppercase', fontWeight: 600, marginBottom: '8px' }}>YOLO Vision Model Objects</div>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                              {cameraData.detections.map((det: any, i: number) => (
+                                <span key={i} style={{ fontSize: '10px', backgroundColor: '#1E293B', color: '#38BDF8', padding: '4px 8px', borderRadius: '4px', fontWeight: 600, border: '1px solid #334155' }}>
+                                  🔍 {det.label} ({(det.confidence * 100).toFixed(0)}%)
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div style={{ padding: '24px', backgroundColor: '#F9FAFB', border: '1px dashed #E5E7EB', borderRadius: '12px', textAlign: 'center', fontSize: '13px', color: '#9CA3AF' }}>
+                      No active CCTV feed in this zone. Indoor room monitored by entry permit logging.
+                    </div>
+                  );
+                })()}
               </div>
             </>
           )}

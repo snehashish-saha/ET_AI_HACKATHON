@@ -8,9 +8,14 @@ import { AnimatedNumber } from '../components/ui/AnimatedNumber';
 export default function LandingPage() {
   const navigate = useNavigate();
   const { report } = useLiveReport();
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [officerId, setOfficerId] = useState('');
-  const [password, setPassword] = useState('');
+
+  // Redirect if already logged in
+  useEffect(() => {
+    const officer = localStorage.getItem('kawach_officer');
+    if (officer) {
+      navigate('/app/dashboard');
+    }
+  }, [navigate]);
 
   // Scroll to section helper
   const scrollToSection = (id: string) => {
@@ -22,22 +27,6 @@ export default function LandingPage() {
     if (el) {
       el.scrollIntoView({ behavior: 'smooth' });
     }
-  };
-
-  // Keyboard navigation for closing modal
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setShowAuthModal(false);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
-
-  const handleLoginSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    navigate('/app/dashboard');
   };
 
   // Stats Intersection Observer to trigger counting
@@ -155,12 +144,12 @@ export default function LandingPage() {
           <span onClick={() => scrollToSection('features')} style={{ fontSize: '14px', fontWeight: 500, color: '#6B7280', cursor: 'pointer', transition: 'color 200ms' }} className="hover:text-black">Features</span>
           <span onClick={() => scrollToSection('how-it-works')} style={{ fontSize: '14px', fontWeight: 500, color: '#6B7280', cursor: 'pointer', transition: 'color 200ms' }} className="hover:text-black">How It Works</span>
           <span onClick={() => navigate('/app/architecture')} style={{ fontSize: '14px', fontWeight: 500, color: '#6B7280', cursor: 'pointer', transition: 'color 200ms' }} className="hover:text-black">Architecture</span>
-          <span onClick={() => setShowAuthModal(true)} style={{ fontSize: '14px', fontWeight: 500, color: '#6B7280', cursor: 'pointer', transition: 'color 200ms' }} className="hover:text-black">Live Demo</span>
+          <span onClick={() => navigate('/login')} style={{ fontSize: '14px', fontWeight: 500, color: '#6B7280', cursor: 'pointer', transition: 'color 200ms' }} className="hover:text-black">Safety Console</span>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <button
-            onClick={() => setShowAuthModal(true)}
+            onClick={() => navigate('/login')}
             style={{
               background: 'transparent', color: '#111827', border: '1px solid rgba(0,0,0,0.1)',
               borderRadius: '8px', padding: '8px 20px', fontSize: '14px', fontWeight: 500,
@@ -171,7 +160,7 @@ export default function LandingPage() {
             Sign In
           </button>
           <button
-            onClick={() => setShowAuthModal(true)}
+            onClick={() => navigate('/login')}
             style={{
               background: '#3B6FF0', color: 'white', border: 'none',
               borderRadius: '8px', padding: '8px 20px', fontSize: '14px', fontWeight: 600,
@@ -218,7 +207,7 @@ export default function LandingPage() {
 
             <div style={{ display: 'flex', gap: '16px', marginTop: '12px' }}>
               <button
-                onClick={() => setShowAuthModal(true)}
+                onClick={() => navigate('/login')}
                 style={{
                   background: '#3B6FF0', color: 'white', border: 'none',
                   borderRadius: '12px', height: '48px', padding: '0 28px',
@@ -562,7 +551,7 @@ export default function LandingPage() {
           </p>
 
           <button
-            onClick={() => setShowAuthModal(true)}
+            onClick={() => navigate('/login')}
             style={{
               background: '#3B6FF0', color: 'white', border: 'none',
               borderRadius: '16px', height: '56px', padding: '0 40px',
@@ -576,7 +565,7 @@ export default function LandingPage() {
           </button>
           
           <span style={{ fontSize: '12px', color: '#6B7280', marginTop: '16px' }}>
-            No setup required. Live simulation running.
+            Kawach plant safety interface.
           </span>
         </div>
       </section>
@@ -615,7 +604,7 @@ export default function LandingPage() {
             <span onClick={() => scrollToSection('how-it-works')} style={{ fontSize: '14px', color: '#6B7280', cursor: 'pointer' }} className="hover:text-black">How It Works</span>
             <span onClick={() => navigate('/app/architecture')} style={{ fontSize: '14px', color: '#6B7280', cursor: 'pointer' }} className="hover:text-black">Architecture</span>
             <span onClick={() => navigate('/app/copilot')} style={{ fontSize: '14px', color: '#6B7280', cursor: 'pointer' }} className="hover:text-black">Safety Copilot</span>
-            <span onClick={() => setShowAuthModal(true)} style={{ fontSize: '14px', color: '#6B7280', cursor: 'pointer' }} className="hover:text-black">Live Demo</span>
+            <span onClick={() => navigate('/login')} style={{ fontSize: '14px', color: '#6B7280', cursor: 'pointer' }} className="hover:text-black">Safety Console</span>
           </div>
 
           {/* RIGHT COLUMN — PLATFORM */}
@@ -625,7 +614,7 @@ export default function LandingPage() {
             <span onClick={() => navigate('/app/reports')} style={{ fontSize: '14px', color: '#6B7280', cursor: 'pointer' }} className="hover:text-black">Incident Reports</span>
             <span onClick={() => navigate('/app/alerts')} style={{ fontSize: '14px', color: '#6B7280', cursor: 'pointer' }} className="hover:text-black">Alert History</span>
             <span onClick={() => navigate('/app/console')} style={{ fontSize: '14px', color: '#6B7280', cursor: 'pointer' }} className="hover:text-black">Control Console</span>
-            <span onClick={() => setShowAuthModal(true)} style={{ fontSize: '14px', color: '#6B7280', cursor: 'pointer' }} className="hover:text-black">Sign In</span>
+            <span onClick={() => navigate('/login')} style={{ fontSize: '14px', color: '#6B7280', cursor: 'pointer' }} className="hover:text-black">Sign In</span>
           </div>
 
         </div>
@@ -639,123 +628,6 @@ export default function LandingPage() {
           <span>Powered by Gemini AI · OISD Standards · OSHA · PNGRB</span>
         </div>
       </footer>
-
-      {/* AUTH MODAL OVERLAY */}
-      <AnimatePresence>
-        {showAuthModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            style={{
-              position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-              backgroundColor: 'rgba(0, 0, 0, 0.5)', backdropFilter: 'blur(8px)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              zIndex: 1000
-            }}
-            onClick={() => setShowAuthModal(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 350 }}
-              style={{
-                width: '100%', maxWidth: '440px', backgroundColor: '#FFFFFF',
-                borderRadius: '24px', padding: '40px', boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
-                position: 'relative', color: '#111827'
-              }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Close Button */}
-              <button
-                onClick={() => setShowAuthModal(false)}
-                style={{
-                  position: 'absolute', top: '20px', right: '20px', background: 'transparent',
-                  border: 'none', cursor: 'pointer', color: '#6B7280'
-                }}
-              >
-                <X size={20} />
-              </button>
-
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: '32px' }}>
-                <div style={{ width: '48px', height: '48px', borderRadius: '12px', backgroundColor: '#EEF2FF', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
-                  <Shield size={28} color="#3B6FF0" />
-                </div>
-                <h3 style={{ fontFamily: 'Sora, sans-serif', fontSize: '24px', fontWeight: 700, margin: '0 0 4px 0', color: '#111827' }}>Kawach</h3>
-                <span style={{ fontSize: '13px', color: '#6B7280' }}>AI Safety Intelligence Platform</span>
-              </div>
-
-              <form onSubmit={handleLoginSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '11px', fontWeight: 600, color: '#4B5563', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Officer ID</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Enter your ID"
-                    value={officerId}
-                    onChange={(e) => setOfficerId(e.target.value)}
-                    style={{
-                      height: '44px', borderRadius: '10px', border: '1.5px solid #E5E7EB',
-                      backgroundColor: '#F9FAFB', padding: '0 16px', fontSize: '14px',
-                      color: '#111827', outline: 'none', transition: 'border-color 0.2s'
-                    }}
-                    className="focus:border-blue-500"
-                  />
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ fontSize: '11px', fontWeight: 600, color: '#4B5563', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Password</label>
-                  <input
-                    type="password"
-                    required
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    style={{
-                      height: '44px', borderRadius: '10px', border: '1.5px solid #E5E7EB',
-                      backgroundColor: '#F9FAFB', padding: '0 16px', fontSize: '14px',
-                      color: '#111827', outline: 'none', transition: 'border-color 0.2s'
-                    }}
-                    className="focus:border-blue-500"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  style={{
-                    height: '48px', borderRadius: '10px', backgroundColor: '#3B6FF0',
-                    color: 'white', border: 'none', fontSize: '15px', fontWeight: 600,
-                    cursor: 'pointer', boxShadow: '0 4px 12px rgba(59,111,240,0.2)',
-                    marginTop: '8px'
-                  }}
-                >
-                  Sign In
-                </button>
-              </form>
-
-              <div style={{ display: 'flex', alignItems: 'center', margin: '24px 0', gap: '16px' }}>
-                <div style={{ flex: 1, height: '1px', backgroundColor: '#E5E7EB' }} />
-                <span style={{ fontSize: '12px', color: '#9CA3AF' }}>or</span>
-                <div style={{ flex: 1, height: '1px', backgroundColor: '#E5E7EB' }} />
-              </div>
-
-              <div style={{ textAlign: 'center' }}>
-                <span
-                  onClick={() => navigate('/app/dashboard')}
-                  style={{ fontSize: '14px', fontWeight: 600, color: '#3B6FF0', cursor: 'pointer' }}
-                  className="hover:underline"
-                >
-                  Skip to Live Demo →
-                </span>
-                <div style={{ fontSize: '11px', color: '#9CA3AF', marginTop: '16px' }}>
-                  For demonstration purposes only
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

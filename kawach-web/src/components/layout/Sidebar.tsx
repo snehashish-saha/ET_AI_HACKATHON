@@ -1,9 +1,11 @@
 import React from 'react';
-import { useLocation, Link } from 'react-router-dom';
-import { ShieldCheck, LayoutDashboard, FileText, Bell, GitBranch, Sliders, MessageSquare, Sparkles } from 'lucide-react';
+import { useLocation, Link, useNavigate } from 'react-router-dom';
+import { ShieldCheck, LayoutDashboard, FileText, Bell, GitBranch, Sliders, MessageSquare, Sparkles, User, LogOut } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 export default function Sidebar() {
   const location = useLocation();
+  const navigate = useNavigate();
 
   const navItems = [
     { name: 'Dashboard', path: '/app/dashboard', icon: LayoutDashboard },
@@ -12,7 +14,24 @@ export default function Sidebar() {
     { name: 'Architecture', path: '/app/architecture', icon: GitBranch },
     { name: 'Safety Copilot', path: '/app/copilot', icon: MessageSquare, isAI: true },
     { name: 'Control Console', path: '/app/console', icon: Sliders },
+    { name: 'User Profile', path: '/app/profile', icon: User },
   ];
+
+  // Retrieve current safety officer from local storage
+  const officerData = localStorage.getItem('kawach_officer');
+  const officer = officerData
+    ? JSON.parse(officerData)
+    : {
+        name: 'Amit Sharma',
+        role: 'Head Safety Officer',
+        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=120'
+      };
+
+  const handleLogout = () => {
+    localStorage.removeItem('kawach_officer');
+    toast.success('Successfully logged out.');
+    navigate('/');
+  };
 
   return (
     <div style={{ width: '240px', height: '100vh', position: 'fixed', left: 0, top: 0, backgroundColor: '#FFFFFF', borderRight: '1px solid #F3F4F6', display: 'flex', flexDirection: 'column', zIndex: 100 }}>
@@ -66,7 +85,25 @@ export default function Sidebar() {
         })}
       </div>
 
-      <div style={{ padding: '20px', display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center', color: '#9CA3AF', fontSize: '12px', borderTop: '1px solid #F3F4F6' }}>
+      {/* Officer profile card block */}
+      <div style={{ padding: '16px', borderTop: '1px solid #F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+        <Link to="/app/profile" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none', color: 'inherit', flex: 1, minWidth: 0 }}>
+          <img src={officer.avatar} alt={officer.name} style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }} />
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <div style={{ fontSize: '13px', fontWeight: 600, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{officer.name}</div>
+            <div style={{ fontSize: '11px', color: '#6B7280', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{officer.role}</div>
+          </div>
+        </Link>
+        <button
+          onClick={handleLogout}
+          style={{ background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '6px', borderRadius: '8px', color: '#DC2626' }}
+          title="Sign Out"
+        >
+          <LogOut size={16} />
+        </button>
+      </div>
+
+      <div style={{ padding: '12px 20px', display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center', color: '#9CA3AF', fontSize: '12px', borderTop: '1px solid #F3F4F6' }}>
         <Sparkles size={14} color="#7C3AED" />
         <span>Powered by Gemini AI</span>
       </div>

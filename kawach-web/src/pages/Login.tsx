@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShieldCheck } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -10,7 +11,41 @@ export default function Login() {
 
   const handleSignIn = (e: React.FormEvent) => {
     e.preventDefault();
-    navigate('/dashboard');
+    
+    const idClean = officerId.trim();
+    const pwClean = password;
+
+    if (idClean === 'admin' && pwClean === 'password') {
+      const user = {
+        id: 'admin',
+        name: 'Amit Sharma',
+        role: 'Head Safety Officer',
+        email: 'a.sharma@kawach.ai',
+        shift: 'Shift A (06:00 - 14:00)',
+        badge: 'K-9831',
+        department: 'Operations & Process Safety',
+        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=120'
+      };
+      localStorage.setItem('kawach_officer', JSON.stringify(user));
+      toast.success('Welcome back, Officer Sharma!');
+      navigate('/app/dashboard');
+    } else if (idClean === 'officer-01' && pwClean === 'kawach2026') {
+      const user = {
+        id: 'officer-01',
+        name: 'Rahul Verma',
+        role: 'Senior Safety Inspector',
+        email: 'r.verma@kawach.ai',
+        shift: 'Shift B (14:00 - 22:00)',
+        badge: 'K-1054',
+        department: 'Field Compliance Inspection',
+        avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=120'
+      };
+      localStorage.setItem('kawach_officer', JSON.stringify(user));
+      toast.success('Welcome back, Inspector Verma!');
+      navigate('/app/dashboard');
+    } else {
+      toast.error('Invalid Officer ID or Password');
+    }
   };
 
   const inputStyle = (field: string): React.CSSProperties => ({
@@ -109,6 +144,7 @@ export default function Login() {
             onBlur={() => setFocusedField(null)}
             style={inputStyle('officerId')}
             autoComplete="username"
+            required
           />
 
           {/* 16px gap */}
@@ -136,6 +172,7 @@ export default function Login() {
             onBlur={() => setFocusedField(null)}
             style={inputStyle('password')}
             autoComplete="current-password"
+            required
           />
 
           {/* 24px gap */}
@@ -168,30 +205,6 @@ export default function Login() {
           </button>
         </form>
 
-        {/* 20px gap */}
-        <div style={{ height: 20 }} />
-
-        {/* Skip to Demo */}
-        <div style={{ textAlign: 'center' }}>
-          <span
-            onClick={() => navigate('/dashboard')}
-            style={{
-              fontSize: 14,
-              color: '#3B6FF0',
-              cursor: 'pointer',
-              fontWeight: 500,
-              fontFamily: 'Inter, sans-serif',
-            }}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') navigate('/dashboard');
-            }}
-          >
-            Skip to Live Demo →
-          </span>
-        </div>
-
         {/* 32px gap */}
         <div style={{ height: 32 }} />
 
@@ -203,7 +216,7 @@ export default function Login() {
             textAlign: 'center',
           }}
         >
-          For demonstration purposes only
+          Kawach Plant Security Portal
         </div>
       </div>
     </div>

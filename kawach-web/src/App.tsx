@@ -4,12 +4,30 @@ import { AnimatePresence } from 'framer-motion';
 import { Toaster } from 'react-hot-toast';
 
 import LandingPage from './pages/LandingPage';
+import Login from './pages/Login';
+import Profile from './pages/Profile';
 import Dashboard from './pages/Dashboard';
 import IncidentReport from './pages/IncidentReport';
 import AlertsHistory from './pages/AlertsHistory';
 import Architecture from './pages/Architecture';
 import LiveControlConsole from './pages/LiveControlConsole';
 import SafetyCopilot from './pages/SafetyCopilot';
+
+function PrivateRoute({ children }: { children: React.ReactNode }) {
+  const officer = localStorage.getItem('kawach_officer');
+  if (!officer) {
+    return <Navigate to="/login" replace />;
+  }
+  return <>{children}</>;
+}
+
+function PublicRoute({ children }: { children: React.ReactNode }) {
+  const officer = localStorage.getItem('kawach_officer');
+  if (officer) {
+    return <Navigate to="/app/dashboard" replace />;
+  }
+  return <>{children}</>;
+}
 
 function App() {
   return (
@@ -31,13 +49,18 @@ function App() {
       <AnimatePresence mode="wait">
         <Routes>
           <Route path="/" element={<LandingPage />} />
-          <Route path="/app" element={<Navigate to="/app/dashboard" replace />} />
-          <Route path="/app/dashboard" element={<Dashboard />} />
-          <Route path="/app/reports" element={<IncidentReport />} />
-          <Route path="/app/alerts" element={<AlertsHistory />} />
-          <Route path="/app/architecture" element={<Architecture />} />
-          <Route path="/app/console" element={<LiveControlConsole />} />
-          <Route path="/app/copilot" element={<SafetyCopilot />} />
+          <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+          
+          {/* Protected Routes */}
+          <Route path="/app" element={<PrivateRoute><Navigate to="/app/dashboard" replace /></PrivateRoute>} />
+          <Route path="/app/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+          <Route path="/app/reports" element={<PrivateRoute><IncidentReport /></PrivateRoute>} />
+          <Route path="/app/alerts" element={<PrivateRoute><AlertsHistory /></PrivateRoute>} />
+          <Route path="/app/architecture" element={<PrivateRoute><Architecture /></PrivateRoute>} />
+          <Route path="/app/console" element={<PrivateRoute><LiveControlConsole /></PrivateRoute>} />
+          <Route path="/app/copilot" element={<PrivateRoute><SafetyCopilot /></PrivateRoute>} />
+          <Route path="/app/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
+
           {/* Fallbacks */}
           <Route path="/dashboard" element={<Navigate to="/app/dashboard" replace />} />
           <Route path="/report" element={<Navigate to="/app/reports" replace />} />

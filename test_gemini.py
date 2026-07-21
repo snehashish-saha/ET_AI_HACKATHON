@@ -1,14 +1,12 @@
 import os
 from dotenv import load_dotenv
-import google.generativeai as genai
+from google import genai
 
 load_dotenv()
 
-genai.configure(api_key=os.getenv("LLM_API_KEY"))
+client = genai.Client(api_key=os.getenv("LLM_API_KEY"))
 
 print("\nAvailable Models:\n")
 
-for model in genai.list_models():
-
-    if "generateContent" in model.supported_generation_methods:
-        print(model.name)
+for model in client.models.list():
+    print(model.name)

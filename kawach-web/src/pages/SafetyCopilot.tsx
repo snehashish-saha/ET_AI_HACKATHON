@@ -5,6 +5,7 @@ import { useLiveReport } from '../hooks/useLiveReport';
 import { Shield, Send, FileText, CheckCircle } from 'lucide-react';
 import GlassCard from '../components/ui/GlassCard';
 import FormattedText from '../components/ui/FormattedText';
+import { API_BASE } from '../config';
 
 interface Message {
   id: string;
@@ -107,7 +108,7 @@ export default function SafetyCopilot() {
     setIsTyping(true);
 
     try {
-      const res = await fetch('http://localhost:8000/ask', {
+      const res = await fetch(`${API_BASE}/ask`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ question: text })

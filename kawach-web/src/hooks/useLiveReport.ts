@@ -9,6 +9,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import type { LiveReport, ScenarioKey } from '../types/report';
+import { API_BASE } from '../config';
 
 interface UseLiveReportReturn {
   report: LiveReport | null;
@@ -48,7 +49,7 @@ export function useLiveReport(): UseLiveReportReturn {
 
     const fetchReport = async () => {
       try {
-        const res = await fetch('http://localhost:8000/report');
+        const res = await fetch(`${API_BASE}/report`);
         if (!res.ok) throw new Error('Network response not ok');
         const data: LiveReport = await res.json();
 
@@ -59,7 +60,7 @@ export function useLiveReport(): UseLiveReportReturn {
       }
 
       try {
-        const alertsRes = await fetch('http://localhost:8000/alerts');
+        const alertsRes = await fetch(`${API_BASE}/alerts`);
         if (alertsRes.ok) {
           const alertsData = await alertsRes.json();
           if (active) {
@@ -71,7 +72,7 @@ export function useLiveReport(): UseLiveReportReturn {
       }
 
       try {
-        const scenRes = await fetch('http://localhost:8000/scenario');
+        const scenRes = await fetch(`${API_BASE}/scenario`);
         if (scenRes.ok) {
           const scenData = await scenRes.json();
           if (active) {
@@ -93,7 +94,7 @@ export function useLiveReport(): UseLiveReportReturn {
   }, []);
 
   const setScenario = useCallback((key: ScenarioKey) => {
-    fetch('http://localhost:8000/scenario', {
+    fetch(`${API_BASE}/scenario`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ scenario: key })
@@ -102,7 +103,7 @@ export function useLiveReport(): UseLiveReportReturn {
 
   const updateAlertStatus = useCallback(async (id: string, status: 'Active' | 'Acknowledged' | 'Resolved') => {
     try {
-      const res = await fetch(`http://localhost:8000/alerts/${id}/status`, {
+      const res = await fetch(`${API_BASE}/alerts/${id}/status`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status })

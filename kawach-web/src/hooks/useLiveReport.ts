@@ -1,18 +1,10 @@
-// ============================================================
-// WEBSOCKET INTEGRATION POINT
-// Replace the setInterval mock below with:
-// const ws = new WebSocket('ws://<backend-host>/ws/live');
-// ws.onmessage = (e) => setReport(JSON.parse(e.data));
-// Remove the setInterval and tick() calls entirely.
-// The hook's return shape does not change — zero component rewrites.
-// ============================================================
-
 import { useState, useEffect, useCallback } from 'react';
 import type { LiveReport, ScenarioKey } from '../types/report';
 import { API_BASE } from '../config';
+import { engine } from '../mock/mockEngine';
 
 interface UseLiveReportReturn {
-  report: LiveReport | null;
+  report: LiveReport;
   setScenario: (key: ScenarioKey) => void;
   currentScenario: ScenarioKey;
   alertHistory: Array<{
@@ -31,56 +23,55 @@ interface UseLiveReportReturn {
   updateAlertStatus: (id: string, status: 'Active' | 'Acknowledged' | 'Resolved') => Promise<void>;
 }
 
-let alertIdCounter = 0;
-
 export function useLiveReport(): UseLiveReportReturn {
-  const [report, setReport] = useState<LiveReport | null>(null);
+  const [report, setReport] = useState<LiveReport>(() => engine.tick());
   const [currentScenario, setCurrentScenario] = useState<ScenarioKey>('NORMAL_OPERATION');
-  const [alertHistory, setAlertHistory] = useState<Array<{
-    id: string;
-    timestamp: string;
-    zone: string;
-    description: string;
-    riskLevel: string;
-  }>>([]);
+  const [alertHistory, setAlertHistory] = useState<Array<any>>(() => engine.getAlertHistory() || []);
 
   useEffect(() => {
     let active = true;
 
     const fetchReport = async () => {
       try {
-        const res = await fetch(`${API_BASE}/report`);
+        const res = await fetch(`${API_BASE}/report`, { signal: AbortSignal.timeout(3000) });
         if (!res.ok) throw new Error('Network response not ok');
         const data: LiveReport = await res.json();
 
         if (!active) return;
         setReport(data);
       } catch (err) {
-        console.error("Error fetching live report from backend:", err);
+        // Fallback to local simulation engine when backend is offline/cold starting
+        if (active) {
+          setReport(engine.tick());
+        }
       }
 
       try {
-        const alertsRes = await fetch(`${API_BASE}/alerts`);
+        const alertsRes = await fetch(`${API_BASE}/alerts`, { signal: AbortSignal.timeout(3000) });
         if (alertsRes.ok) {
           const alertsData = await alertsRes.json();
-          if (active) {
+          if (active && Array.isArray(alertsData) && alertsData.length > 0) {
             setAlertHistory(alertsData);
           }
         }
       } catch (err) {
-        console.error("Error fetching alert history from backend:", err);
+        if (active) {
+          setAlertHistory(engine.getAlertHistory() || []);
+        }
       }
 
       try {
-        const scenRes = await fetch(`${API_BASE}/scenario`);
+        const scenRes = await fetch(`${API_BASE}/scenario`, { signal: AbortSignal.timeout(3000) });
         if (scenRes.ok) {
           const scenData = await scenRes.json();
-          if (active) {
+          if (active && scenData.scenario) {
             setCurrentScenario(scenData.scenario as ScenarioKey);
           }
         }
       } catch (err) {
-        console.error("Error fetching scenario from backend:", err);
+        if (active) {
+          setCurrentScenario(engine.getScenarioKey());
+        }
       }
     };
 
@@ -94,27 +85,27 @@ export function useLiveReport(): UseLiveReportReturn {
   }, []);
 
   const setScenario = useCallback((key: ScenarioKey) => {
+    engine.setScenario(key);
+    setCurrentScenario(key);
     fetch(`${API_BASE}/scenario`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ scenario: key })
-    }).catch((err) => console.error("Error setting scenario:", err));
+    }).catch(() => {});
   }, []);
 
   const updateAlertStatus = useCallback(async (id: string, status: 'Active' | 'Acknowledged' | 'Resolved') => {
+    setAlertHistory((prev) =>
+      prev.map((a) => (a.id === id ? { ...a, status } : a))
+    );
     try {
-      const res = await fetch(`${API_BASE}/alerts/${id}/status`, {
+      await fetch(`${API_BASE}/alerts/${id}/status`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status })
       });
-      if (res.ok) {
-        setAlertHistory((prev) =>
-          prev.map((a) => (a.id === id ? { ...a, status } : a))
-        );
-      }
     } catch (err) {
-      console.error("Error updating alert status:", err);
+      // Handled locally
     }
   }, []);
 

@@ -112,7 +112,7 @@ export default function Login() {
     e.preventDefault();
 
     if (regOfficialKey.trim() !== '54321') {
-      toast.error('Invalid Official Verification Key! (Plant Security Key is 54321)');
+      toast.error('Invalid Official Verification Key! Authorization key required.');
       return;
     }
 
@@ -519,7 +519,7 @@ export default function Login() {
               </label>
               <input
                 type="password"
-                placeholder="Enter Official Key (54321)"
+                placeholder="Enter Official Security Key"
                 value={regOfficialKey}
                 onChange={(e) => setRegOfficialKey(e.target.value)}
                 onFocus={() => setFocusedField('regOfficialKey')}
@@ -531,7 +531,7 @@ export default function Login() {
                 required
               />
               <div style={{ fontSize: 11, color: '#3B82F6', marginTop: 4 }}>
-                Plant verification authorization code required (54321).
+                Official plant authorization clearance required.
               </div>
             </div>
 

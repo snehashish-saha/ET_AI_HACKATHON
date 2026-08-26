@@ -1,7 +1,6 @@
 {
-  "buildCommand": "cd kawach-web && npm install && npm run build",
+  "buildCommand": "npm --prefix kawach-web install && npm --prefix kawach-web run build",
   "outputDirectory": "kawach-web/dist",
-  "framework": "vite",
   "rewrites": [
     {
       "source": "/(.*)",

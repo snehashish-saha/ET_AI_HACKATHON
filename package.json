@@ -1,0 +1,8 @@
+{
+  "name": "et-ai-hackathon",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "build": "npm --prefix kawach-web install && npm --prefix kawach-web run build"
+  }
+}

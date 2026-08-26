@@ -160,15 +160,15 @@ export default function LandingPage() {
             Sign In
           </button>
           <button
-            onClick={() => navigate('/login')}
+            onClick={() => navigate('/login?mode=register')}
             style={{
-              background: '#3B6FF0', color: 'white', border: 'none',
+              background: '#10B981', color: 'white', border: 'none',
               borderRadius: '8px', padding: '8px 20px', fontSize: '14px', fontWeight: 600,
-              cursor: 'pointer', boxShadow: '0 2px 8px rgba(59,111,240,0.3)', transition: 'background-color 200ms'
+              cursor: 'pointer', boxShadow: '0 2px 8px rgba(16,185,129,0.3)', transition: 'background-color 200ms'
             }}
-            className="hover:bg-blue-600"
+            className="hover:bg-emerald-600"
           >
-            Get Started
+            Create Account
           </button>
         </div>
       </nav>

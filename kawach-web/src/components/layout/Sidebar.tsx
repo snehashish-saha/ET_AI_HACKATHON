@@ -88,7 +88,23 @@ export default function Sidebar() {
       {/* Officer profile card block */}
       <div style={{ padding: '16px', borderTop: '1px solid #F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
         <Link to="/app/profile" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none', color: 'inherit', flex: 1, minWidth: 0 }}>
-          <img src={officer.avatar} alt={officer.name} style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }} />
+          <div
+            style={{
+              width: '32px',
+              height: '32px',
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #3B6FF0 0%, #7C3AED 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#FFFFFF',
+              fontSize: '14px',
+              fontWeight: 700,
+              flexShrink: 0
+            }}
+          >
+            {(officer.name || 'S').charAt(0).toUpperCase()}
+          </div>
           <div style={{ minWidth: 0, flex: 1 }}>
             <div style={{ fontSize: '13px', fontWeight: 600, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{officer.name}</div>
             <div style={{ fontSize: '11px', color: '#6B7280', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{officer.role}</div>

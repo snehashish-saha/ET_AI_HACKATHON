@@ -66,24 +66,31 @@ export default function Profile() {
           }}>
             {/* Avatar container with live-pulse border */}
             <div style={{ position: 'relative', marginBottom: '20px' }}>
-              <img
-                src={officer.avatar}
-                alt={officer.name}
+              <div
                 style={{
                   width: '110px',
                   height: '110px',
                   borderRadius: '50%',
-                  objectFit: 'cover',
+                  background: 'linear-gradient(135deg, #3B6FF0 0%, #7C3AED 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#FFFFFF',
+                  fontSize: '44px',
+                  fontWeight: 700,
+                  fontFamily: 'Sora, sans-serif',
+                  boxShadow: '0 8px 24px rgba(59, 111, 240, 0.25)',
                   border: '3px solid #3B6FF0',
-                  padding: '4px'
                 }}
-              />
+              >
+                {(officer.name || 'S').charAt(0).toUpperCase()}
+              </div>
               <span style={{
                 position: 'absolute',
                 bottom: '4px',
                 right: '4px',
-                width: '16px',
-                height: '16px',
+                width: '18px',
+                height: '18px',
                 backgroundColor: '#10B981',
                 border: '3px solid #FFFFFF',
                 borderRadius: '50%',

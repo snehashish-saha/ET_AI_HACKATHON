@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npm --prefix kawach-web install && npm --prefix kawach-web run build",
+  "buildCommand": "cd kawach-web && npm install && npm run build",
   "outputDirectory": "kawach-web/dist",
   "rewrites": [
     {

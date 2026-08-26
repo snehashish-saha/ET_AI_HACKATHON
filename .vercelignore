@@ -1,0 +1,16 @@
+api/
+AI/
+simulator/
+data/
+knowledge_base/
+scripts/
+*.py
+*.pt
+*.db
+requirements.txt
+Procfile
+render.yaml
+Makefile
+backend.log
+frontend.log
+api.pid

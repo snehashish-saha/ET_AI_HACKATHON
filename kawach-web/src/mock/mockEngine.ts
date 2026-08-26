@@ -128,7 +128,7 @@ function smoothSensor(current: number, target: number, variation: number): numbe
   return newValue;
 }
 
-// ─── Compound Risk Engine (exact from backend) ──────────────
+// ─── Compound Risk Engine ──────────────────────────────────
 
 function computeRisk(
   gas: number,
@@ -142,57 +142,89 @@ function computeRisk(
   const reasons: string[] = [];
   const recommendations: string[] = [];
 
-  // Base scoring
-  if (gas > 60) score += 20;
-  else if (gas > 35) score += 10;
+  // Incident specific baseline
+  if (incident === 'Hot Work During Gas Leak') {
+    score = 75;
+  } else if (incident === 'Gas Leak') {
+    score = 45;
+  } else if (incident === 'Boiler Overheating') {
+    score = 50;
+  } else if (incident === 'Valve Failure') {
+    score = 45;
+  } else if (incident === 'Confined Space Entry') {
+    score = 48;
+  }
 
-  if (temp > 480) score += 15;
-  else if (temp > 450) score += 8;
+  // Base sensor scoring
+  if (gas > 70) {
+    score += 25;
+    reasons.push('Severe explosive gas cloud detected.');
+  } else if (gas > 45) {
+    score += 20;
+    reasons.push(`Gas concentration (${Math.round(gas)} ppm) exceeds 35 ppm LEL safety limit.`);
+    recommendations.push('Deploy SCBA response team and isolate valves.');
+  } else if (gas > 30) {
+    score += 10;
+  }
 
-  if (pressure > 8) score += 15;
-  else if (pressure > 6) score += 8;
+  if (temp > 480) {
+    score += 20;
+    reasons.push(`Critical thermal elevation (${Math.round(temp)}°C).`);
+    recommendations.push('Engage emergency water deluge systems.');
+  } else if (temp > 450) {
+    score += 12;
+    reasons.push(`Operating temperature (${Math.round(temp)}°C) above caution threshold.`);
+  }
+
+  if (pressure > 8.5) {
+    score += 22;
+    reasons.push(`Severe overpressurization (${pressure.toFixed(1)} bar).`);
+    recommendations.push('Vent pressure relief lines immediately.');
+  } else if (pressure > 6.5) {
+    score += 12;
+    reasons.push(`Line pressure (${pressure.toFixed(1)} bar) elevated above baseline.`);
+  }
 
   if (maintenance) score += 5;
-  if (permit === 'Hot Work') score += 8;
+  if (permit === 'Hot Work') score += 10;
 
   // Compound rules
   if (gas > 45 && permit === 'Hot Work') {
     score += 30;
-    reasons.push('Explosion risk: hazardous gas with active hot work.');
-    recommendations.push('Cancel Hot Work Permit immediately.');
+    reasons.push('CRITICAL COMPOUND RISK: Hazardous gas present during active Hot Work welding.');
+    recommendations.push('Cancel Hot Work Permit and evacuate zone immediately.');
   }
   if (gas > 35 && temp > 450) {
     score += 20;
-    reasons.push('Fire hazard due to high gas and temperature.');
-    recommendations.push('Inspect ignition sources immediately.');
+    reasons.push('Imminent ignition danger due to high gas and elevated temperature.');
+    recommendations.push('De-energize all non-intrinsically safe electrical circuits.');
   }
   if (pressure > 8 && temp > 470) {
-    score += 20;
-    reasons.push('Possible boiler failure.');
-    recommendations.push('Reduce boiler load immediately.');
-  }
-  if (pressure > 7 && gas > 40) {
-    score += 15;
-    reasons.push('Process becoming unstable.');
-    recommendations.push('Increase monitoring frequency.');
+    score += 25;
+    reasons.push('Imminent boiler rupture risk.');
+    recommendations.push('Initiate emergency steam depressurization.');
   }
   if (incident === 'Gas Leak' && permit === 'Hot Work') {
-    score += 25;
-    reasons.push('Unsafe permit issued during gas leak.');
-    recommendations.push('Suspend work permit immediately.');
+    score += 30;
+    reasons.push('Unsafe hot work authorization during active gas dispersion.');
+    recommendations.push('Suspend permit and sound zone evacuation siren.');
   }
   if (gas > 60 && temp > 480 && pressure > 8) {
-    score += 35;
-    reasons.push('Multiple critical process parameters exceeded.');
-    recommendations.push('Initiate emergency shutdown.');
+    score += 40;
+    reasons.push('Catastrophic multi-variable failure across process boundaries.');
+    recommendations.push('Initiate full plant Emergency Shutdown Protocol (ESD).');
+  }
+
+  if (incident === 'Normal Operation' && gas < 25 && temp < 440 && pressure < 6) {
+    score = Math.min(score, 12);
   }
 
   score = Math.min(score, 100);
 
   let risk_level: RiskLevel;
   if (score >= 80) risk_level = 'CRITICAL';
-  else if (score >= 60) risk_level = 'HIGH';
-  else if (score >= 30) risk_level = 'MEDIUM';
+  else if (score >= 55) risk_level = 'HIGH';
+  else if (score >= 25) risk_level = 'MEDIUM';
   else risk_level = 'LOW';
 
   return { risk_score: Math.round(score), risk_level, reasons, recommendations };
@@ -233,21 +265,17 @@ function computePredictions(gas: number, temp: number, pressure: number): Predic
 function computeGeoMap(incidentZone: ZoneName): Record<ZoneName, RiskLevel> {
   const geoMap: Record<string, RiskLevel> = {};
 
-  // Initialize all as LOW
   for (const zone of ZONE_NAMES) {
     geoMap[zone] = 'LOW';
   }
 
-  // Incident zone = CRITICAL
   geoMap[incidentZone] = 'CRITICAL';
 
-  // Immediate neighbors = HIGH
   const immediateNeighbors = ZONE_NEIGHBORS[incidentZone] || [];
   for (const neighbor of immediateNeighbors) {
     geoMap[neighbor] = 'HIGH';
   }
 
-  // Second-degree neighbors = MEDIUM
   for (const neighbor of immediateNeighbors) {
     const secondDegree = ZONE_NEIGHBORS[neighbor] || [];
     for (const secondNeighbor of secondDegree) {
@@ -264,9 +292,20 @@ function computeGeoMap(incidentZone: ZoneName): Record<ZoneName, RiskLevel> {
 
 function buildRiskMap(incidentZone: ZoneName, scenarioRiskLevel: RiskLevel): Record<ZoneName, ZoneRisk> {
   const riskMap: Record<string, ZoneRisk> = {};
+  const neighbors = ZONE_NEIGHBORS[incidentZone] || [];
+
   for (const zone of ZONE_NAMES) {
+    let risk: RiskLevel = 'LOW';
+    if (scenarioRiskLevel !== 'LOW') {
+      if (zone === incidentZone) {
+        risk = scenarioRiskLevel;
+      } else if (neighbors.includes(zone)) {
+        risk = scenarioRiskLevel === 'CRITICAL' ? 'HIGH' : 'MEDIUM';
+      }
+    }
+
     riskMap[zone] = {
-      risk: zone === incidentZone ? scenarioRiskLevel : 'LOW',
+      risk,
       camera: CAMERA_MAP[zone],
       hazard: HAZARD_MAP[zone],
     };

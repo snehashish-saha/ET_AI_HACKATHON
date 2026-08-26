@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ShieldCheck, UserPlus, LogIn, KeyRound, Lock, User, BadgeAlert } from 'lucide-react';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { UserPlus, LogIn, KeyRound, ArrowLeft } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import KawachLogo from '../components/ui/KawachLogo';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -154,7 +155,7 @@ export default function Login() {
 
   const inputStyle = (field: string): React.CSSProperties => ({
     width: '100%',
-    height: 44,
+    height: 42,
     borderRadius: 10,
     border: focusedField === field ? '1.5px solid #3B6FF0' : '1.5px solid #E5E7EB',
     backgroundColor: '#F9FAFB',
@@ -173,64 +174,52 @@ export default function Login() {
       style={{
         minHeight: '100vh',
         width: '100%',
-        backgroundColor: '#F0F2F5',
+        backgroundColor: '#F3F4F6',
         display: 'flex',
+        flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
         fontFamily: 'Inter, sans-serif',
-        padding: '24px',
-        boxSizing: 'border-box'
+        padding: '32px 16px',
+        boxSizing: 'border-box',
       }}
     >
+      {/* Back to Home Navigation */}
+      <div style={{ width: '100%', maxWidth: 440, marginBottom: 16 }}>
+        <Link
+          to="/"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            color: '#6B7280',
+            fontSize: 13,
+            fontWeight: 500,
+            textDecoration: 'none',
+            transition: 'color 0.15s'
+          }}
+          className="hover:text-black"
+        >
+          <ArrowLeft size={16} />
+          Back to Main Overview
+        </Link>
+      </div>
+
       <div
         style={{
           width: '100%',
           maxWidth: 440,
           backgroundColor: '#FFFFFF',
           borderRadius: 24,
-          padding: '40px 36px',
-          boxShadow: '0 4px 6px rgba(0,0,0,0.04), 0 12px 32px rgba(0,0,0,0.07)',
+          padding: '32px 32px',
+          boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05), 0 10px 25px -3px rgba(0,0,0,0.08)',
           boxSizing: 'border-box' as const,
+          border: '1px solid #E5E7EB',
         }}
       >
-        {/* Icon */}
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
-          <div style={{
-            width: 56,
-            height: 56,
-            borderRadius: 16,
-            backgroundColor: '#EEF2FF',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}>
-            <ShieldCheck size={32} color="#3B6FF0" strokeWidth={2} />
-          </div>
-        </div>
-
-        {/* Title */}
-        <div
-          style={{
-            fontSize: 26,
-            fontWeight: 700,
-            color: '#111827',
-            textAlign: 'center',
-            lineHeight: 1.2,
-          }}
-        >
-          Kawach
-        </div>
-
-        {/* Subtitle */}
-        <div
-          style={{
-            fontSize: 13,
-            color: '#6B7280',
-            textAlign: 'center',
-            marginTop: 4,
-          }}
-        >
-          AI Industrial Safety Intelligence
+        {/* Custom Kawach Logo */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 6 }}>
+          <KawachLogo size={44} showText={true} textSize={22} subtitle={true} />
         </div>
 
         {/* Toggle Mode Tabs */}
@@ -239,8 +228,8 @@ export default function Login() {
           backgroundColor: '#F3F4F6',
           borderRadius: 12,
           padding: 4,
-          marginTop: 24,
-          marginBottom: 24,
+          marginTop: 20,
+          marginBottom: 20,
           gap: 4
         }}>
           <button
@@ -322,7 +311,7 @@ export default function Login() {
               required
             />
 
-            <div style={{ height: 16 }} />
+            <div style={{ height: 14 }} />
 
             {/* Password */}
             <label
@@ -350,14 +339,14 @@ export default function Login() {
               required
             />
 
-            <div style={{ height: 24 }} />
+            <div style={{ height: 20 }} />
 
             {/* Sign In Button */}
             <button
               type="submit"
               style={{
                 width: '100%',
-                height: 46,
+                height: 44,
                 borderRadius: 10,
                 backgroundColor: '#3B6FF0',
                 color: '#FFFFFF',
@@ -391,7 +380,7 @@ export default function Login() {
                 color: '#4B5563',
                 textTransform: 'uppercase',
                 letterSpacing: '0.05em',
-                marginBottom: 6,
+                marginBottom: 4,
               }}
             >
               Officer Full Name
@@ -407,7 +396,7 @@ export default function Login() {
               required
             />
 
-            <div style={{ height: 14 }} />
+            <div style={{ height: 12 }} />
 
             {/* Officer ID */}
             <label
@@ -418,7 +407,7 @@ export default function Login() {
                 color: '#4B5563',
                 textTransform: 'uppercase',
                 letterSpacing: '0.05em',
-                marginBottom: 6,
+                marginBottom: 4,
               }}
             >
               Desired Officer ID
@@ -434,7 +423,7 @@ export default function Login() {
               required
             />
 
-            <div style={{ height: 14 }} />
+            <div style={{ height: 12 }} />
 
             {/* Role */}
             <label
@@ -445,7 +434,7 @@ export default function Login() {
                 color: '#4B5563',
                 textTransform: 'uppercase',
                 letterSpacing: '0.05em',
-                marginBottom: 6,
+                marginBottom: 4,
               }}
             >
               Designation / Role
@@ -464,7 +453,7 @@ export default function Login() {
               <option value="Process Safety Engineer">Process Safety Engineer</option>
             </select>
 
-            <div style={{ height: 14 }} />
+            <div style={{ height: 12 }} />
 
             {/* Create Password */}
             <label
@@ -475,7 +464,7 @@ export default function Login() {
                 color: '#4B5563',
                 textTransform: 'uppercase',
                 letterSpacing: '0.05em',
-                marginBottom: 6,
+                marginBottom: 4,
               }}
             >
               Create Password
@@ -491,30 +480,30 @@ export default function Login() {
               required
             />
 
-            <div style={{ height: 14 }} />
+            <div style={{ height: 12 }} />
 
-            {/* Official Verification Key (54321) */}
+            {/* Official Verification Key (Secret Key) */}
             <div style={{
               backgroundColor: '#EFF6FF',
               border: '1px solid #BFDBFE',
               borderRadius: 10,
               padding: '10px 12px',
-              marginBottom: 6
+              marginBottom: 4
             }}>
               <label
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: 6,
-                  fontSize: 12,
+                  fontSize: 11,
                   fontWeight: 700,
                   color: '#1E40AF',
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em',
-                  marginBottom: 6,
+                  marginBottom: 4,
                 }}
               >
-                <KeyRound size={14} color="#2563EB" />
+                <KeyRound size={13} color="#2563EB" />
                 Official Plant Security Key
               </label>
               <input
@@ -526,7 +515,8 @@ export default function Login() {
                 onBlur={() => setFocusedField(null)}
                 style={{
                   ...inputStyle('regOfficialKey'),
-                  backgroundColor: '#FFFFFF'
+                  backgroundColor: '#FFFFFF',
+                  height: 38
                 }}
                 required
               />
@@ -535,14 +525,14 @@ export default function Login() {
               </div>
             </div>
 
-            <div style={{ height: 20 }} />
+            <div style={{ height: 16 }} />
 
             {/* Create Account Button */}
             <button
               type="submit"
               style={{
                 width: '100%',
-                height: 46,
+                height: 44,
                 borderRadius: 10,
                 backgroundColor: '#10B981',
                 color: '#FFFFFF',
@@ -567,8 +557,8 @@ export default function Login() {
         )}
 
         {/* Footer info */}
-        <div style={{ marginTop: 24, textAlign: 'center', fontSize: 12, color: '#9CA3AF' }}>
-          Kawach Official Safety Access Protocol
+        <div style={{ marginTop: 20, textAlign: 'center', fontSize: 11, color: '#9CA3AF' }}>
+          Kawach Plant Security Access Protocol
         </div>
       </div>
     </div>

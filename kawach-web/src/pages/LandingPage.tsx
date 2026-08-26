@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, Sparkles, X, Check, FileText } from 'lucide-react';
 import { useLiveReport } from '../hooks/useLiveReport';
 import { AnimatedNumber } from '../components/ui/AnimatedNumber';
+import KawachLogo from '../components/ui/KawachLogo';
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -134,9 +135,8 @@ export default function LandingPage() {
         alignItems: 'center', justifyContent: 'space-between', padding: '0 40px',
         zIndex: 500, boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-          <Shield size={24} color="#3B6FF0" />
-          <span style={{ fontSize: '20px', fontWeight: 700, fontFamily: 'Sora, sans-serif', letterSpacing: '-0.5px', color: '#111827' }}>Kawach</span>
+        <div style={{ cursor: 'pointer' }} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+          <KawachLogo size={32} showText={true} textSize={20} />
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '32px' }}>

@@ -2,6 +2,7 @@ import React from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { ShieldCheck, LayoutDashboard, FileText, Bell, GitBranch, Sliders, MessageSquare, Sparkles, User, LogOut } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import KawachLogo from '../ui/KawachLogo';
 
 export default function Sidebar() {
   const location = useLocation();
@@ -36,12 +37,8 @@ export default function Sidebar() {
   return (
     <div style={{ width: '240px', height: '100vh', position: 'fixed', left: 0, top: 0, backgroundColor: '#FFFFFF', borderRight: '1px solid #F3F4F6', display: 'flex', flexDirection: 'column', zIndex: 100 }}>
       <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
-        <div style={{ padding: '24px 20px', display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
-          <ShieldCheck size={28} color="#3B6FF0" />
-          <div>
-            <div style={{ fontSize: '18px', fontWeight: 700, color: '#111827', fontFamily: 'Sora, sans-serif' }}>Kawach</div>
-            <div style={{ fontSize: '11px', color: '#9CA3AF' }}>AI Safety Intelligence</div>
-          </div>
+        <div style={{ padding: '20px 18px', display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+          <KawachLogo size={32} showText={true} textSize={17} subtitle={true} />
         </div>
       </Link>
       

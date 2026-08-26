@@ -43,6 +43,23 @@ export default function Login() {
       localStorage.setItem('kawach_officer', JSON.stringify(user));
       toast.success('Welcome back, Inspector Verma!');
       navigate('/app/dashboard');
+    } else if (
+      (idClean.toLowerCase() === 'shivam rai' || idClean.toLowerCase() === 'shivam' || idClean.toLowerCase() === 'shivamrai') &&
+      pwClean === '54321'
+    ) {
+      const user = {
+        id: 'shivam-01',
+        name: 'Shivam Rai',
+        role: 'Chief Safety Controller',
+        email: 'shivam.rai@kawach.ai',
+        shift: 'Shift A (06:00 - 14:00)',
+        badge: 'K-0001',
+        department: 'Command & Plant Operations',
+        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=120'
+      };
+      localStorage.setItem('kawach_officer', JSON.stringify(user));
+      toast.success('Welcome back, Officer Shivam Rai!');
+      navigate('/app/dashboard');
     } else {
       toast.error('Invalid Officer ID or Password');
     }

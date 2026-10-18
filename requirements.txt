@@ -34,3 +34,5 @@ faiss-cpu
 langchain-community
 langchain-huggingface
 sentence-transformers
+opencv-python-headless
+ultralytics
